@@ -4,1081 +4,659 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Activity Planner</title>
-  <link rel="manifest" href="data:application/json,{}" />
-  <meta name="theme-color" content="#0f0f0f" />
+  <meta name="theme-color" content="#0a0a0f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
     :root {
       --bg-dark: #0a0a0f;
-      --card-dark: #16161e;
+      --card-dark: #14141e;
+      --card-dark-hover: #1a1a28;
       --text-dark: #e8e8ef;
+      --text-muted-dark: #8888a0;
       --bg-light: #f0f2f5;
       --card-light: #ffffff;
+      --card-light-hover: #f8f8fc;
       --text-light: #1a1a2e;
+      --text-muted-light: #6e6e8a;
       --accent: #6c5ce7;
-      --accent-glow: rgba(108, 92, 231, 0.3);
+      --accent-light: #a29bfe;
+      --accent-glow: rgba(108,92,231,0.25);
       --success: #00b894;
-      --success-glow: rgba(0, 184, 148, 0.3);
+      --success-light: #55efc4;
+      --success-glow: rgba(0,184,148,0.25);
       --danger: #e74c3c;
+      --danger-light: #fd79a8;
       --warning: #fdcb6e;
-      --border-dark: #2d2d3a;
+      --border-dark: #252535;
       --border-light: #e0e0e8;
       --gradient-1: linear-gradient(135deg, #6c5ce7, #a29bfe);
       --gradient-2: linear-gradient(135deg, #00b894, #55efc4);
       --gradient-3: linear-gradient(135deg, #e74c3c, #fd79a8);
-      --shadow-dark: 0 4px 20px rgba(0,0,0,0.4);
-      --shadow-light: 0 4px 20px rgba(0,0,0,0.08);
+      --gradient-4: linear-gradient(135deg, #fdcb6e, #f39c12);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.15);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.2);
+      --shadow-dark: 0 4px 24px rgba(0,0,0,0.5);
+      --shadow-light: 0 4px 24px rgba(0,0,0,0.06);
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
       overflow-x: hidden;
-      transition: background 0.3s, color 0.3s;
+      transition: background 0.4s ease, color 0.4s ease;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
+    body.dark { background: var(--bg-dark); color: var(--text-dark); }
+    body.light { background: var(--bg-light); color: var(--text-light); }
 
-    body.dark {
-      background: var(--bg-dark);
-      color: var(--text-dark);
-    }
-
-    body.light {
-      background: var(--bg-light);
-      color: var(--text-light);
-    }
-
-    /* ─── Scrollbar ─── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     body.dark ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
     body.light ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
 
-    /* ─── Auth Screen ─── */
+    /* ═══════════ AUTH SCREEN ═══════════ */
     .auth-screen {
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      background: var(--bg-dark);
     }
+    body.light .auth-screen { background: var(--bg-light); }
+
+    .auth-bg-glow {
+      position: fixed;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .auth-bg-glow.g1 { top: -50px; left: -50px; background: var(--accent); }
+    .auth-bg-glow.g2 { bottom: -50px; right: -50px; background: var(--success); }
 
     .auth-container {
       width: 100%;
-      max-width: 400px;
-      padding: 32px 24px;
-      border-radius: 20px;
+      max-width: 420px;
+      padding: 40px 28px;
+      border-radius: var(--radius-xl);
       text-align: center;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.5s ease;
     }
-
     body.dark .auth-container {
       background: var(--card-dark);
       box-shadow: var(--shadow-dark);
       border: 1px solid var(--border-dark);
     }
-
     body.light .auth-container {
       background: var(--card-light);
       box-shadow: var(--shadow-light);
       border: 1px solid var(--border-light);
     }
 
-    .auth-container .logo {
-      font-size: 48px;
-      margin-bottom: 8px;
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
+    .auth-container .logo { font-size: 56px; margin-bottom: 12px; display: block; }
     .auth-container h2 {
-      font-size: 24px;
-      margin-bottom: 4px;
+      font-size: 28px; margin-bottom: 6px; font-weight: 800;
+      background: var(--gradient-1);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-
-    .auth-container .subtitle {
-      opacity: 0.6;
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
+    .auth-container .subtitle { opacity: 0.5; font-size: 14px; margin-bottom: 32px; }
 
     .auth-tabs {
-      display: flex;
-      margin-bottom: 24px;
-      border-radius: 12px;
-      overflow: hidden;
+      display: flex; margin-bottom: 28px; border-radius: var(--radius-md);
+      overflow: hidden; padding: 4px; gap: 4px;
     }
-
     body.dark .auth-tabs { background: var(--bg-dark); }
     body.light .auth-tabs { background: var(--bg-light); }
 
     .auth-tab {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.3s;
-      border-radius: 12px;
+      flex: 1; padding: 11px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; transition: all 0.3s;
+      border-radius: var(--radius-sm); background: transparent;
     }
-
-    body.dark .auth-tab { background: transparent; color: var(--text-dark); opacity: 0.5; }
-    body.light .auth-tab { background: transparent; color: var(--text-light); opacity: 0.5; }
-    .auth-tab.active { background: var(--accent) !important; color: white !important; opacity: 1 !important; }
+    body.dark .auth-tab { color: var(--text-dark); opacity: 0.4; }
+    body.light .auth-tab { color: var(--text-light); opacity: 0.4; }
+    .auth-tab.active { background: var(--accent)!important; color: white!important; opacity: 1!important; }
 
     .auth-input {
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: 12px;
-      border: 2px solid transparent;
-      font-size: 15px;
-      margin-bottom: 12px;
-      transition: border-color 0.3s;
-      outline: none;
+      width: 100%; padding: 15px 18px; border-radius: var(--radius-md);
+      border: 2px solid transparent; font-size: 15px;
+      margin-bottom: 14px; transition: border-color 0.3s, box-shadow 0.3s; outline: none;
     }
-
-    body.dark .auth-input {
-      background: var(--bg-dark);
-      color: var(--text-dark);
-      border-color: var(--border-dark);
-    }
-
-    body.light .auth-input {
-      background: var(--bg-light);
-      color: var(--text-light);
-      border-color: var(--border-light);
-    }
-
-    .auth-input:focus {
-      border-color: var(--accent);
-    }
+    body.dark .auth-input { background: var(--bg-dark); color: var(--text-dark); border-color: var(--border-dark); }
+    body.light .auth-input { background: var(--bg-light); color: var(--text-light); border-color: var(--border-light); }
+    .auth-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+    .auth-input::placeholder { opacity: 0.35; }
 
     .auth-btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: none;
-      background: var(--gradient-1);
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
-      margin-top: 8px;
+      width: 100%; padding: 16px; border-radius: var(--radius-md); border: none;
+      background: var(--gradient-1); color: white; font-size: 16px;
+      font-weight: 700; cursor: pointer; transition: transform 0.15s, box-shadow 0.3s;
+      margin-top: 8px; letter-spacing: 0.3px;
+      box-shadow: 0 4px 16px var(--accent-glow);
     }
-
+    .auth-btn:hover { box-shadow: 0 6px 24px var(--accent-glow); }
     .auth-btn:active { transform: scale(0.97); }
-    .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .auth-error {
-      color: var(--danger);
-      font-size: 13px;
-      margin-bottom: 12px;
-      min-height: 20px;
+      color: var(--danger); font-size: 13px; margin-bottom: 12px;
+      min-height: 20px; font-weight: 500;
     }
 
-    /* ─── Main App ─── */
+    /* ═══════════ MAIN APP ═══════════ */
     .app {
-      max-width: 600px;
+      max-width: 640px;
       width: 100%;
       margin: 0 auto;
       min-height: 100vh;
+      min-height: 100dvh;
       padding: 16px;
-      padding-bottom: 30px;
-      display: none;
+      padding-bottom: 40px;
     }
+
+    .hidden { display: none!important; }
 
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      gap: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 24px; gap: 8px;
     }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-      min-width: 0;
-    }
-
+    .header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
     .header-left h1 {
-      font-size: 22px;
-      margin: 0;
-      background: var(--gradient-1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 24px; margin: 0;
+      background: var(--gradient-1); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text;
+      font-weight: 800;
     }
-
-    .header-right {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
+    .header-right { display: flex; gap: 8px; flex-shrink: 0; }
 
     .icon-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.1s, background 0.3s;
+      width: 44px; height: 44px; border-radius: var(--radius-md); border: none;
+      cursor: pointer; font-size: 18px; display: flex; align-items: center;
+      justify-content: center; transition: transform 0.15s, background 0.3s, box-shadow 0.3s;
       padding: 0;
     }
+    .icon-btn:active { transform: scale(0.88); }
+    body.dark .icon-btn { background: var(--card-dark); color: var(--text-dark); border: 1px solid var(--border-dark); }
+    body.light .icon-btn { background: var(--card-light); color: var(--text-light); border: 1px solid var(--border-light); }
+    body.dark .icon-btn:hover { background: var(--card-dark-hover); }
+    body.light .icon-btn:hover { background: var(--card-light-hover); box-shadow: var(--shadow-sm); }
 
-    .icon-btn:active { transform: scale(0.9); }
-
-    body.dark .icon-btn {
-      background: var(--card-dark);
-      color: var(--text-dark);
-      border: 1px solid var(--border-dark);
-    }
-
-    body.light .icon-btn {
-      background: var(--card-light);
-      color: var(--text-light);
-      border: 1px solid var(--border-light);
-    }
-
-    /* ─── User Info Bar ─── */
+    /* ═══════════ USER BAR ═══════════ */
     .user-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border-radius: 16px;
-      margin-bottom: 16px;
-      font-size: 14px;
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px; border-radius: var(--radius-lg); margin-bottom: 20px;
+      transition: background 0.3s;
     }
-
-    body.dark .user-bar {
-      background: var(--card-dark);
-      border: 1px solid var(--border-dark);
-    }
-
-    body.light .user-bar {
-      background: var(--card-light);
-      border: 1px solid var(--border-light);
-    }
+    body.dark .user-bar { background: var(--card-dark); border: 1px solid var(--border-dark); }
+    body.light .user-bar { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
 
     .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--gradient-1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: white;
-      font-size: 16px;
-      flex-shrink: 0;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--gradient-1); display: flex; align-items: center;
+      justify-content: center; font-weight: 800; color: white; font-size: 20px;
+      flex-shrink: 0; box-shadow: 0 4px 12px var(--accent-glow);
     }
-
-    .user-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .user-name {
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    .user-email {
-      opacity: 0.5;
-      font-size: 12px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-weight: 700; font-size: 16px; }
+    body.dark .user-email { color: var(--text-muted-dark); }
+    body.light .user-email { color: var(--text-muted-light); }
+    .user-email { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .sync-indicator {
-      font-size: 12px;
-      opacity: 0.6;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      font-size: 12px; display: flex; align-items: center;
+      gap: 5px; flex-shrink: 0; font-weight: 600; padding: 6px 12px;
+      border-radius: 20px;
     }
-
+    body.dark .sync-indicator { background: rgba(255,255,255,0.05); }
+    body.light .sync-indicator { background: rgba(0,0,0,0.04); }
     .sync-indicator.syncing { color: var(--warning); }
     .sync-indicator.synced { color: var(--success); }
     .sync-indicator.error { color: var(--danger); }
 
-    /* ─── Stats Cards ─── */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
+    /* ═══════════ STATS ═══════════ */
+    .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
     .stat-card {
-      padding: 16px 12px;
-      border-radius: 16px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
+      padding: 20px 14px; border-radius: var(--radius-lg); text-align: center;
+      position: relative; overflow: hidden; transition: transform 0.2s, box-shadow 0.3s;
     }
+    .stat-card:active { transform: scale(0.96); }
+    body.dark .stat-card { background: var(--card-dark); border: 1px solid var(--border-dark); }
+    body.light .stat-card { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
 
-    body.dark .stat-card {
-      background: var(--card-dark);
-      border: 1px solid var(--border-dark);
-      box-shadow: var(--shadow-dark);
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
     }
+    .stat-card:nth-child(1)::before { background: var(--gradient-4); }
+    .stat-card:nth-child(2)::before { background: var(--gradient-3); }
+    .stat-card:nth-child(3)::before { background: var(--gradient-1); }
 
-    body.light .stat-card {
-      background: var(--card-light);
-      border: 1px solid var(--border-light);
-      box-shadow: var(--shadow-light);
+    .stat-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+    .stat-value { font-size: 28px; font-weight: 800; line-height: 1.1; }
+    .stat-label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 1px; margin-top: 4px; font-weight: 700;
     }
-
-    .stat-card .stat-icon {
-      font-size: 24px;
-      margin-bottom: 4px;
-    }
-
-    .stat-card .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    .stat-card .stat-label {
-      font-size: 11px;
-      opacity: 0.6;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
+    body.dark .stat-label { color: var(--text-muted-dark); }
+    body.light .stat-label { color: var(--text-muted-light); }
     .stat-card:nth-child(1) .stat-value { color: var(--warning); }
     .stat-card:nth-child(2) .stat-value { color: #e74c3c; }
     .stat-card:nth-child(3) .stat-value { color: var(--accent); }
 
-    /* ─── Section ─── */
-    section {
-      margin-bottom: 24px;
-    }
-
+    /* ═══════════ SECTIONS ═══════════ */
+    section { margin-bottom: 28px; }
     .section-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .section-header h2 {
-      font-size: 18px;
-      margin: 0;
-    }
-
-    .section-header .badge {
-      background: var(--accent);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    /* ─── Inputs ─── */
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .modern-input {
-      flex: 1;
-      min-width: 0;
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 2px solid transparent;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.3s;
-    }
-
-    body.dark .modern-input {
-      background: var(--card-dark);
-      color: var(--text-dark);
-      border-color: var(--border-dark);
-    }
-
-    body.light .modern-input {
-      background: var(--card-light);
-      color: var(--text-light);
-      border-color: var(--border-light);
-    }
-
-    .modern-input:focus {
-      border-color: var(--accent);
-    }
-
-    .modern-input::placeholder {
-      opacity: 0.4;
-    }
-
-    /* ─── Buttons ─── */
-    .btn {
-      padding: 12px 20px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: transform 0.1s, opacity 0.2s;
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .btn:active { transform: scale(0.95); }
-
-    .btn-primary {
-      background: var(--gradient-1);
-      color: white;
-    }
-
-    .btn-success {
-      background: var(--gradient-2);
-      color: white;
-    }
-
-    .btn-danger {
-      background: var(--gradient-3);
-      color: white;
-    }
-
-    .btn-outline {
-      background: transparent;
-    }
-
-    body.dark .btn-outline {
-      color: var(--text-dark);
-      border: 1px solid var(--border-dark);
-    }
-
-    body.light .btn-outline {
-      color: var(--text-light);
-      border: 1px solid var(--border-light);
-    }
-
-    .btn-sm {
-      padding: 8px 12px;
-      font-size: 13px;
-      border-radius: 8px;
-    }
-
-    .btn-icon {
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    .btn-full {
-      width: 100%;
-    }
-
-    /* ─── Goal Cards ─── */
-    .goal-card {
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    body.dark .goal-card {
-      background: var(--card-dark);
-      border: 1px solid var(--border-dark);
-      box-shadow: var(--shadow-dark);
-    }
-
-    body.light .goal-card {
-      background: var(--card-light);
-      border: 1px solid var(--border-light);
-      box-shadow: var(--shadow-light);
-    }
-
-    .goal-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .goal-card-name {
-      font-weight: 700;
-      font-size: 15px;
-      flex: 1;
-      min-width: 0;
-      word-wrap: break-word;
-    }
-
-    .goal-card-dates {
-      font-size: 12px;
-      opacity: 0.5;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .goal-progress-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .goal-progress-bar {
-      flex: 1;
-      height: 8px;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    body.dark .goal-progress-bar { background: var(--border-dark); }
-    body.light .goal-progress-bar { background: var(--border-light); }
-
-    .goal-progress-fill {
-      height: 100%;
-      background: var(--gradient-2);
-      border-radius: 4px;
-      transition: width 0.5s ease;
-    }
-
-    .goal-progress-text {
-      font-size: 13px;
-      font-weight: 600;
-      min-width: 60px;
-      text-align: right;
-    }
-
-    /* ─── Task Items ─── */
-    .task-card {
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: transform 0.2s, opacity 0.3s;
-    }
-
-    body.dark .task-card {
-      background: var(--card-dark);
-      border: 1px solid var(--border-dark);
-    }
-
-    body.light .task-card {
-      background: var(--card-light);
-      border: 1px solid var(--border-light);
-    }
-
-    .custom-checkbox {
-      width: 24px;
-      height: 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.3s;
-      font-size: 14px;
-    }
-
-    body.dark .custom-checkbox {
-      border: 2px solid var(--border-dark);
-      background: transparent;
-    }
-
-    body.light .custom-checkbox {
-      border: 2px solid var(--border-light);
-      background: transparent;
-    }
-
-    .custom-checkbox.checked {
-      background: var(--gradient-2) !important;
-      border-color: var(--success) !important;
-      color: white;
-    }
-
-    .task-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .task-name {
-      font-size: 14px;
-      font-weight: 500;
-      word-wrap: break-word;
-      transition: opacity 0.3s;
-    }
-
-    .task-name.completed {
-      text-decoration: line-through;
-      opacity: 0.4;
-    }
-
-    .task-badge {
-      display: inline-block;
-      background: var(--accent);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-left: 8px;
-      vertical-align: middle;
-    }
-
-    .task-actions {
-      display: flex;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-
-    /* ─── Calendar ─── */
-    .calendar-container {
-      border-radius: 16px;
-      padding: 16px;
-      overflow: hidden;
-    }
-
-    body.dark .calendar-container {
-      background: var(--card-dark);
-      border: 1px solid var(--border-dark);
-      box-shadow: var(--shadow-dark);
-    }
-
-    body.light .calendar-container {
-      background: var(--card-light);
-      border: 1px solid var(--border-light);
-      box-shadow: var(--shadow-light);
-    }
-
-    .calendar-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; align-items: center; gap: 10px;
       margin-bottom: 16px;
     }
-
-    .calendar-nav .month-label {
-      font-size: 16px;
-      font-weight: 700;
+    .section-header h2 { font-size: 19px; margin: 0; font-weight: 800; }
+    .section-header .badge {
+      background: var(--gradient-1); color: white; padding: 3px 12px;
+      border-radius: 20px; font-size: 11px; font-weight: 700;
+      box-shadow: 0 2px 8px var(--accent-glow);
     }
 
+    /* ═══════════ INPUTS ═══════════ */
+    .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .modern-input {
+      flex: 1; min-width: 0; padding: 14px 18px; border-radius: var(--radius-md);
+      border: 2px solid transparent; font-size: 14px; outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    body.dark .modern-input { background: var(--card-dark); color: var(--text-dark); border-color: var(--border-dark); }
+    body.light .modern-input { background: var(--card-light); color: var(--text-light); border-color: var(--border-light); }
+    .modern-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+    .modern-input::placeholder { opacity: 0.35; }
+
+    /* ═══════════ BUTTONS ═══════════ */
+    .btn {
+      padding: 13px 22px; border-radius: var(--radius-md); border: none; cursor: pointer;
+      font-size: 14px; font-weight: 700; transition: transform 0.15s, opacity 0.2s, box-shadow 0.3s;
+      white-space: nowrap; display: inline-flex; align-items: center;
+      justify-content: center; gap: 6px;
+    }
+    .btn:active { transform: scale(0.94); }
+    .btn-primary { background: var(--gradient-1); color: white; box-shadow: 0 4px 12px var(--accent-glow); }
+    .btn-success { background: var(--gradient-2); color: white; box-shadow: 0 4px 12px var(--success-glow); }
+    .btn-danger { background: var(--gradient-3); color: white; }
+    .btn-outline { background: transparent; }
+    body.dark .btn-outline { color: var(--text-dark); border: 1px solid var(--border-dark); }
+    body.light .btn-outline { color: var(--text-light); border: 1px solid var(--border-light); }
+    body.dark .btn-outline:hover { background: var(--card-dark-hover); }
+    body.light .btn-outline:hover { background: var(--card-light-hover); }
+    .btn-sm { padding: 9px 14px; font-size: 13px; border-radius: var(--radius-sm); }
+    .btn-icon { width: 44px; height: 44px; padding: 0; border-radius: var(--radius-md); font-size: 18px; }
+    .btn-full { width: 100%; }
+
+    /* ═══════════ GOAL CARDS ═══════════ */
+    .goal-card {
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px;
+      position: relative; overflow: hidden; transition: transform 0.2s;
+    }
+    .goal-card:active { transform: scale(0.98); }
+    body.dark .goal-card { background: var(--card-dark); border: 1px solid var(--border-dark); }
+    body.light .goal-card { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+
+    .goal-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .goal-card-name { font-weight: 700; font-size: 16px; flex: 1; min-width: 0; word-wrap: break-word; }
+    .goal-card-dates {
+      font-size: 12px; margin-bottom: 14px; display: flex;
+      align-items: center; gap: 6px;
+    }
+    body.dark .goal-card-dates { color: var(--text-muted-dark); }
+    body.light .goal-card-dates { color: var(--text-muted-light); }
+
+    .goal-progress-container { display: flex; align-items: center; gap: 12px; }
+    .goal-progress-bar { flex: 1; height: 10px; border-radius: 5px; overflow: hidden; }
+    body.dark .goal-progress-bar { background: var(--border-dark); }
+    body.light .goal-progress-bar { background: var(--border-light); }
+    .goal-progress-fill {
+      height: 100%; background: var(--gradient-2);
+      border-radius: 5px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+    .goal-progress-text { font-size: 13px; font-weight: 700; min-width: 75px; text-align: right; }
+
+    /* ═══════════ TASK CARDS ═══════════ */
+    .task-card {
+      border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 14px;
+      transition: transform 0.2s, background 0.3s;
+    }
+    body.dark .task-card { background: var(--card-dark); border: 1px solid var(--border-dark); }
+    body.light .task-card { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+    body.dark .task-card:hover { background: var(--card-dark-hover); }
+    body.light .task-card:hover { background: var(--card-light-hover); }
+
+    .custom-checkbox {
+      width: 28px; height: 28px; border-radius: var(--radius-sm); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.3s; font-size: 14px; font-weight: 700;
+    }
+    body.dark .custom-checkbox { border: 2px solid var(--border-dark); background: transparent; color: transparent; }
+    body.light .custom-checkbox { border: 2px solid var(--border-light); background: transparent; color: transparent; }
+    .custom-checkbox.checked {
+      background: var(--success)!important; border-color: var(--success)!important;
+      color: white!important; box-shadow: 0 3px 10px var(--success-glow);
+    }
+
+    .task-content { flex: 1; min-width: 0; }
+    .task-name { font-size: 15px; font-weight: 500; word-wrap: break-word; transition: opacity 0.3s; }
+    .task-name.completed { text-decoration: line-through; opacity: 0.35; }
+    .task-badge {
+      display: inline-block; background: var(--gradient-1); color: white;
+      padding: 2px 10px; border-radius: 6px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px; margin-left: 8px;
+      vertical-align: middle;
+    }
+    .task-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ═══════════ DATE SECTION ═══════════ */
+    .date-section {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px; border-radius: var(--radius-lg); margin-bottom: 24px;
+    }
+    body.dark .date-section { background: var(--card-dark); border: 1px solid var(--border-dark); }
+    body.light .date-section { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+    .date-label { font-size: 15px; font-weight: 700; flex-shrink: 0; }
+
+    /* ═══════════ CALENDAR ═══════════ */
+    .calendar-container { border-radius: var(--radius-lg); padding: 20px; overflow: hidden; }
+    body.dark .calendar-container { background: var(--card-dark); border: 1px solid var(--border-dark); }
+    body.light .calendar-container { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); }
+
+    .calendar-nav {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 20px;
+    }
+    .calendar-nav .month-label { font-size: 18px; font-weight: 800; }
     .calendar-nav button {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.1s;
-      padding: 0;
+      width: 40px; height: 40px; border-radius: var(--radius-sm); border: none;
+      cursor: pointer; font-size: 22px; display: flex; align-items: center;
+      justify-content: center; transition: transform 0.15s, background 0.3s; padding: 0; font-weight: 700;
     }
+    .calendar-nav button:active { transform: scale(0.88); }
+    body.dark .calendar-nav button { background: var(--bg-dark); color: var(--text-dark); border: 1px solid var(--border-dark); }
+    body.light .calendar-nav button { background: var(--bg-light); color: var(--text-light); border: 1px solid var(--border-light); }
 
-    .calendar-nav button:active { transform: scale(0.9); }
-
-    body.dark .calendar-nav button {
-      background: var(--bg-dark);
-      color: var(--text-dark);
-      border: 1px solid var(--border-dark);
-    }
-
-    body.light .calendar-nav button {
-      background: var(--bg-light);
-      color: var(--text-light);
-      border: 1px solid var(--border-light);
-    }
-
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
-
+    .calendar-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
     .cal-header {
-      font-size: 11px;
-      text-align: center;
-      opacity: 0.5;
-      padding: 6px 0;
-      font-weight: 700;
-      text-transform: uppercase;
+      font-size: 11px; text-align: center; padding: 8px 0;
+      font-weight: 700; text-transform: uppercase;
     }
+    body.dark .cal-header { color: var(--text-muted-dark); }
+    body.light .cal-header { color: var(--text-muted-light); }
 
     .cal-day {
-      aspect-ratio: 1;
-      border-radius: 10px;
-      position: relative;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 500;
-      transition: transform 0.15s, border-color 0.3s;
+      aspect-ratio: 1; border-radius: var(--radius-sm); position: relative; cursor: pointer;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      font-size: 14px; font-weight: 600; transition: transform 0.15s, border-color 0.3s, box-shadow 0.3s;
       border: 2px solid transparent;
     }
-
-    body.dark .cal-day { background: var(--bg-dark); }
-    body.light .cal-day { background: var(--bg-light); }
-
-    .cal-day:active { transform: scale(0.9); }
-
-    .cal-day.today {
-      font-weight: 700;
-    }
-
-    body.dark .cal-day.today { background: var(--border-dark); }
-    body.light .cal-day.today { background: var(--border-light); }
-
+    body.dark .cal-day { background: rgba(255,255,255,0.03); }
+    body.light .cal-day { background: rgba(0,0,0,0.02); }
+    .cal-day:active { transform: scale(0.88); }
+    .cal-day.today { font-weight: 800; }
+    body.dark .cal-day.today { background: rgba(108,92,231,0.15); color: var(--accent-light); }
+    body.light .cal-day.today { background: rgba(108,92,231,0.1); color: var(--accent); }
     .cal-day.selected {
       border-color: var(--accent);
-      box-shadow: 0 0 12px var(--accent-glow);
+      box-shadow: 0 0 16px var(--accent-glow);
     }
 
-    .cal-day .day-dots {
-      display: flex;
-      gap: 2px;
-      position: absolute;
-      bottom: 3px;
-    }
-
-    .cal-day .dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-    }
-
+    .day-dots { display: flex; gap: 3px; position: absolute; bottom: 4px; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; }
     .dot.task-dot { background: var(--accent); }
     .dot.goal-dot { background: var(--warning); }
-    .dot.done-dot { background: var(--success); }
+    .dot.done-dot { background: var(--success); box-shadow: 0 0 6px var(--success-glow); }
 
-    /* ─── Date Picker Section ─── */
-    .date-section {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding: 12px 16px;
-      border-radius: 14px;
-    }
+    /* ═══════════ ACTION GRID ═══════════ */
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .action-grid .full-span { grid-column: 1/-1; }
 
-    body.dark .date-section {
-      background: var(--card-dark);
-      border: 1px solid var(--border-dark);
-    }
+    /* ═══════════ EMPTY STATE ═══════════ */
+    .empty-state { text-align: center; padding: 40px 16px; font-size: 14px; }
+    body.dark .empty-state { color: var(--text-muted-dark); }
+    body.light .empty-state { color: var(--text-muted-light); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
 
-    body.light .date-section {
-      background: var(--card-light);
-      border: 1px solid var(--border-light);
-    }
-
-    .date-section .date-label {
-      font-size: 14px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-
-    .date-section input[type="date"] {
-      flex: 1;
-      min-width: 0;
-    }
-
-    /* ─── Action Buttons ─── */
-    .action-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 16px;
-    }
-
-    .action-grid .btn {
-      font-size: 13px;
-    }
-
-    .action-grid .btn-full-span {
-      grid-column: 1 / -1;
-    }
-
-    /* ─── Empty State ─── */
-    .empty-state {
-      text-align: center;
-      padding: 32px 16px;
-      opacity: 0.4;
-      font-size: 14px;
-    }
-
-    .empty-state .empty-icon {
-      font-size: 40px;
-      margin-bottom: 8px;
-    }
-
-    /* ─── Toast ─── */
+    /* ═══════════ TOAST ═══════════ */
     .toast-container {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-      width: calc(100% - 32px);
-      max-width: 400px;
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none; width: calc(100% - 32px); max-width: 420px;
     }
-
     .toast {
-      padding: 14px 20px;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 500;
-      animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
-      pointer-events: auto;
-      text-align: center;
-      backdrop-filter: blur(20px);
+      padding: 16px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600;
+      animation: toastIn 0.4s cubic-bezier(0.4,0,0.2,1), toastOut 0.4s cubic-bezier(0.4,0,0.2,1) 2.6s forwards;
+      pointer-events: auto; text-align: center;
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
     }
-
     body.dark .toast {
-      background: rgba(22, 22, 30, 0.95);
-      border: 1px solid var(--border-dark);
+      background: rgba(20,20,30,0.92); border: 1px solid var(--border-dark);
       box-shadow: var(--shadow-dark);
     }
-
     body.light .toast {
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid var(--border-light);
+      background: rgba(255,255,255,0.92); border: 1px solid var(--border-light);
       box-shadow: var(--shadow-light);
     }
-
     .toast.success { border-left: 4px solid var(--success); }
     .toast.error { border-left: 4px solid var(--danger); }
     .toast.info { border-left: 4px solid var(--accent); }
 
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes toastIn { from { opacity:0; transform:translateY(-16px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes toastOut { from { opacity:1; transform:translateY(0) scale(1); } to { opacity:0; transform:translateY(-16px) scale(0.95); } }
 
-    @keyframes toastOut {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(-20px); }
-    }
-
-    /* ─── Loading ─── */
+    /* ═══════════ LOADING ═══════════ */
     .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9998;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9998; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
-
     .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid transparent;
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width: 48px; height: 48px; border: 3px solid transparent;
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══════════ RESPONSIVE ═══════════ */
+    @media (min-width: 768px) {
+      .app { padding: 24px; }
+      .stats { gap: 16px; }
+      .stat-card { padding: 24px 16px; }
+      .stat-value { font-size: 32px; }
+      header { margin-bottom: 28px; }
+      .header-left h1 { font-size: 28px; }
+      .task-card { padding: 18px 22px; }
+      .goal-card { padding: 24px; }
+      .calendar-grid { gap: 8px; }
+      .cal-day { font-size: 15px; border-radius: var(--radius-md); }
+      .auth-container { padding: 48px 36px; }
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .hidden { display: none !important; }
-
-    /* ─── Responsive ─── */
     @media (max-width: 380px) {
-      .header-left h1 { font-size: 18px; }
-      .stat-card { padding: 12px 8px; }
-      .stat-card .stat-value { font-size: 18px; }
-      .stat-card .stat-icon { font-size: 20px; }
-      .btn { padding: 10px 14px; font-size: 13px; }
-      .cal-day { font-size: 11px; }
+      .header-left h1 { font-size: 20px; }
+      .stat-card { padding: 14px 8px; }
+      .stat-value { font-size: 22px!important; }
+      .stat-icon { font-size: 22px!important; }
+      .btn { padding: 11px 16px; font-size: 13px; }
+      .cal-day { font-size: 12px; }
+      .auth-container { padding: 28px 20px; }
+      .user-bar { padding: 12px 14px; gap: 10px; }
+      .section-header h2 { font-size: 17px; }
+    }
+
+    @media (max-width: 340px) {
+      .stats { grid-template-columns: 1fr; gap: 8px; }
+      .stat-card { display: flex; align-items: center; gap: 12px; text-align: left; padding: 14px 16px; }
+      .stat-card::before { display: none; }
+      .stat-icon { font-size: 24px!important; margin-bottom: 0!important; }
+      .stat-value { font-size: 20px!important; }
     }
   </style>
 </head>
 <body class="dark">
 
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer"></div>
 
-  <!-- Loading Overlay -->
-  <div class="loading-overlay hidden" id="loadingOverlay">
-    <div class="spinner"></div>
+<div class="loading-overlay hidden" id="loadingOverlay"><div class="spinner"></div></div>
+
+<!-- ═══════════ AUTH SCREEN ═══════════ -->
+<div class="auth-screen hidden" id="authScreen">
+  <div class="auth-bg-glow g1"></div>
+  <div class="auth-bg-glow g2"></div>
+  <div class="auth-container">
+    <span class="logo">🎮</span>
+    <h2>Activity Planner</h2>
+    <p class="subtitle">Track goals · Build streaks · Level up</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab">Login</button>
+      <button class="auth-tab" id="registerTab">Register</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+
+    <form id="loginForm" onsubmit="return false;">
+      <input class="auth-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email" />
+      <input class="auth-input" type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
+      <button class="auth-btn" id="loginBtn" type="button">Login</button>
+    </form>
+
+    <form id="registerForm" class="hidden" onsubmit="return false;">
+      <input class="auth-input" type="text" id="regUsername" placeholder="Username" autocomplete="username" />
+      <input class="auth-input" type="email" id="regEmail" placeholder="Email" autocomplete="email" />
+      <input class="auth-input" type="password" id="regPassword" placeholder="Password (min 6 chars)" autocomplete="new-password" />
+      <button class="auth-btn" id="registerBtn" type="button">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div class="app hidden" id="mainApp">
+  <header>
+    <div class="header-left"><h1>🎮 Activity Planner</h1></div>
+    <div class="header-right">
+      <button class="icon-btn" id="syncBtn" title="Sync now">🔄</button>
+      <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+      <button class="icon-btn" id="logoutBtn" title="Logout">🚪</button>
+    </div>
+  </header>
+
+  <div class="user-bar">
+    <div class="user-avatar" id="userAvatar">?</div>
+    <div class="user-info">
+      <div class="user-name" id="userName">User</div>
+      <div class="user-email" id="userEmail">user@email.com</div>
+    </div>
+    <div class="sync-indicator synced" id="syncStatus"><span>✓</span> Synced</div>
   </div>
 
-  <!-- Auth Screen -->
-  <div class="auth-screen" id="authScreen">
-    <div class="auth-container">
-      <div class="logo">🎮</div>
-      <h2>Activity Planner</h2>
-      <p class="subtitle">Track goals, build streaks, level up</p>
-
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Login</button>
-        <button class="auth-tab" id="registerTab" onclick="switchAuthTab('register')">Register</button>
-      </div>
-
-      <div class="auth-error" id="authError"></div>
-
-      <div id="loginForm">
-        <input class="auth-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email" />
-        <input class="auth-input" type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
-        <button class="auth-btn" onclick="handleLogin()">Login</button>
-      </div>
-
-      <div id="registerForm" class="hidden">
-        <input class="auth-input" type="text" id="regUsername" placeholder="Username" autocomplete="username" />
-        <input class="auth-input" type="email" id="regEmail" placeholder="Email" autocomplete="email" />
-        <input class="auth-input" type="password" id="regPassword" placeholder="Password (min 6 chars)" autocomplete="new-password" />
-        <button class="auth-btn" onclick="handleRegister()">Create Account</button>
-      </div>
+  <div class="stats">
+    <div class="stat-card">
+      <span class="stat-icon">⭐</span>
+      <div class="stat-value" id="points">0</div>
+      <div class="stat-label">Points</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🔥</span>
+      <div class="stat-value" id="streak">0</div>
+      <div class="stat-label">Day Streak</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon">🏆</span>
+      <div class="stat-value" id="level">1</div>
+      <div class="stat-label">Level</div>
     </div>
   </div>
 
-  <!-- Main App -->
-  <div class="app hidden" id="mainApp">
-    <header>
-      <div class="header-left">
-        <h1>🎮 Activity Planner</h1>
-      </div>
-      <div class="header-right">
-        <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
-        <button class="icon-btn" id="logoutBtn" title="Logout">🚪</button>
-      </div>
-    </header>
-
-    <!-- User Bar -->
-    <div class="user-bar">
-      <div class="user-avatar" id="userAvatar">?</div>
-      <div class="user-info">
-        <div class="user-name" id="userName">User</div>
-        <div class="user-email" id="userEmail">user@email.com</div>
-      </div>
-      <div class="sync-indicator synced" id="syncStatus">
-        <span>✓</span> Synced
-      </div>
+  <section>
+    <div class="date-section">
+      <span class="date-label">📅</span>
+      <input type="date" class="modern-input" id="currentDate" />
+      <button class="btn btn-sm btn-outline" id="todayBtn">Today</button>
     </div>
+  </section>
 
-    <!-- Stats -->
-    <div class="stats">
-      <div class="stat-card">
-        <div class="stat-icon">⭐</div>
-        <div class="stat-value" id="points">0</div>
-        <div class="stat-label">Points</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🔥</div>
-        <div class="stat-value" id="streak">0</div>
-        <div class="stat-label">Day Streak</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🏆</div>
-        <div class="stat-value" id="level">1</div>
-        <div class="stat-label">Level</div>
-      </div>
+  <section>
+    <div class="section-header">
+      <h2>🎯 Long-Term Goals</h2>
+      <span class="badge" id="goalCount">0</span>
     </div>
+    <div class="input-row">
+      <input class="modern-input" id="ltName" placeholder="Goal name..." style="flex:2" />
+    </div>
+    <div class="input-row">
+      <input type="date" class="modern-input" id="ltStart" />
+      <input type="date" class="modern-input" id="ltEnd" />
+    </div>
+    <div class="input-row">
+      <button class="btn btn-primary btn-full" id="addLongTerm">➕ Add Goal</button>
+    </div>
+    <div id="longTermList"></div>
+  </section>
 
-    <!-- Date Picker -->
-    <section>
-      <div class="date-section">
-        <span class="date-label">📅 Viewing:</span>
-        <input type="date" class="modern-input" id="currentDate" />
-        <button class="btn btn-sm btn-outline" id="todayBtn">Today</button>
-      </div>
-    </section>
+  <section>
+    <div class="section-header">
+      <h2>📋 Daily Tasks</h2>
+      <span class="badge" id="taskCount">0</span>
+    </div>
+    <div class="input-row">
+      <input class="modern-input" id="taskInput" placeholder="Add a task..." />
+      <button class="btn btn-success btn-icon" id="addTask">+</button>
+    </div>
+    <div id="taskList"></div>
+    <div class="action-grid">
+      <button class="btn btn-outline btn-sm" id="resetToday">🔄 Reset Day</button>
+      <button class="btn btn-outline btn-sm" id="resetStats">📊 Reset Stats</button>
+      <button class="btn btn-danger btn-sm full-span" id="resetAll">⚠️ Reset Everything</button>
+    </div>
+  </section>
 
-    <!-- Long-Term Goals -->
-    <section>
-      <div class="section-header">
-        <h2>🎯 Long-Term Goals</h2>
-        <span class="badge" id="goalCount">0</span>
+  <section>
+    <div class="section-header"><h2>📆 Calendar</h2></div>
+    <div class="calendar-container">
+      <div class="calendar-nav">
+        <button id="calPrev">‹</button>
+        <span class="month-label" id="calMonthLabel">January 2024</span>
+        <button id="calNext">›</button>
       </div>
-      <div class="input-row">
-        <input class="modern-input" id="ltName" placeholder="Goal name..." style="flex:2;" />
-      </div>
-      <div class="input-row">
-        <input type="date" class="modern-input" id="ltStart" />
-        <input type="date" class="modern-input" id="ltEnd" />
-      </div>
-      <div class="input-row">
-        <button class="btn btn-primary btn-full" id="addLongTerm">➕ Add Goal</button>
-      </div>
-      <div id="longTermList"></div>
-    </section>
-
-    <!-- Daily Tasks -->
-    <section>
-      <div class="section-header">
-        <h2>📋 Daily Tasks</h2>
-        <span class="badge" id="taskCount">0</span>
-      </div>
-      <div class="input-row">
-        <input class="modern-input" id="taskInput" placeholder="Add a task..." />
-        <button class="btn btn-success btn-icon" id="addTask">+</button>
-      </div>
-      <div id="taskList"></div>
-
-      <div class="action-grid">
-        <button class="btn btn-outline btn-sm" id="resetToday">🔄 Reset Day</button>
-        <button class="btn btn-outline btn-sm" id="resetStats">📊 Reset Stats</button>
-        <button class="btn btn-danger btn-sm btn-full-span" id="resetAll">⚠️ Reset Everything</button>
-      </div>
-    </section>
-
-    <!-- Calendar -->
-    <section>
-      <div class="section-header">
-        <h2>📆 Calendar</h2>
-      </div>
-      <div class="calendar-container">
-        <div class="calendar-nav">
-          <button id="calPrev">‹</button>
-          <span class="month-label" id="calMonthLabel">January 2024</span>
-          <button id="calNext">›</button>
-        </div>
-        <div class="calendar-grid" id="calendar"></div>
-      </div>
-    </section>
-  </div>
+      <div class="calendar-grid" id="calendar"></div>
+    </div>
+  </section>
+</div>
 
 <script>
-// ─── CONFIG ────────────────────────────────────────────────
-const API_URL = 'https://activity-planner-backend.onrender.com'; // Change this after deployment
+// ═══════════════════════════════════════
+// CONFIG — Put your Render backend URL here
+// ═══════════════════════════════════════
+const API_URL = 'https://activity-planner-backend.onrender.com';
 
-// ─── STATE ─────────────────────────────────────────────────
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
 let state = {
   token: localStorage.getItem('planner_token') || null,
   user: JSON.parse(localStorage.getItem('planner_user') || 'null'),
@@ -1096,7 +674,9 @@ let state = {
   selectedDate: null
 };
 
-// ─── HELPERS ───────────────────────────────────────────────
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
 const $ = id => document.getElementById(id);
 
 function getTodayISO() {
@@ -1106,6 +686,12 @@ function getTodayISO() {
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
 }
 
 function showToast(message, type = 'info') {
@@ -1120,30 +706,35 @@ function showToast(message, type = 'info') {
 function showLoading() { $('loadingOverlay').classList.remove('hidden'); }
 function hideLoading() { $('loadingOverlay').classList.add('hidden'); }
 
-function setSyncStatus(status) {
+function setSyncStatus(s) {
   const el = $('syncStatus');
-  el.className = `sync-indicator ${status}`;
-  if (status === 'syncing') el.innerHTML = '<span>⟳</span> Syncing...';
-  else if (status === 'synced') el.innerHTML = '<span>✓</span> Synced';
-  else el.innerHTML = '<span>✕</span> Offline';
+  el.className = `sync-indicator ${s}`;
+  if (s === 'syncing') el.innerHTML = '<span>⟳</span> Syncing';
+  else if (s === 'synced') el.innerHTML = '<span>✓</span> Synced';
+  else el.innerHTML = '<span>✕</span> Error';
 }
 
-// ─── API ───────────────────────────────────────────────────
+function updateThemeButton() {
+  $('themeToggle').textContent = state.data.theme === 'dark' ? '☀️' : '🌙';
+}
+
+// ═══════════════════════════════════════
+// API
+// ═══════════════════════════════════════
 async function api(endpoint, method = 'GET', body = null) {
   const headers = { 'Content-Type': 'application/json' };
   if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-
   const config = { method, headers };
   if (body) config.body = JSON.stringify(body);
-
   const res = await fetch(`${API_URL}${endpoint}`, config);
   const data = await res.json();
-
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
 }
 
-// ─── AUTH ──────────────────────────────────────────────────
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
 function switchAuthTab(tab) {
   $('authError').textContent = '';
   if (tab === 'login') {
@@ -1163,11 +754,7 @@ async function handleLogin() {
   const email = $('loginEmail').value.trim();
   const password = $('loginPassword').value;
   $('authError').textContent = '';
-
-  if (!email || !password) {
-    $('authError').textContent = 'Please fill all fields';
-    return;
-  }
+  if (!email || !password) { $('authError').textContent = 'Please fill all fields'; return; }
 
   showLoading();
   try {
@@ -1191,11 +778,8 @@ async function handleRegister() {
   const email = $('regEmail').value.trim();
   const password = $('regPassword').value;
   $('authError').textContent = '';
-
-  if (!username || !email || !password) {
-    $('authError').textContent = 'Please fill all fields';
-    return;
-  }
+  if (!username || !email || !password) { $('authError').textContent = 'Please fill all fields'; return; }
+  if (password.length < 6) { $('authError').textContent = 'Password must be at least 6 characters'; return; }
 
   showLoading();
   try {
@@ -1206,7 +790,7 @@ async function handleRegister() {
     localStorage.setItem('planner_user', JSON.stringify(res.user));
     await loadData();
     showApp();
-    showToast('Account created! Let\'s go! 🚀', 'success');
+    showToast('Account created! 🚀', 'success');
   } catch (err) {
     $('authError').textContent = err.message;
   } finally {
@@ -1223,10 +807,13 @@ function handleLogout() {
   $('authScreen').classList.remove('hidden');
   $('loginEmail').value = '';
   $('loginPassword').value = '';
+  $('authError').textContent = '';
   showToast('Logged out', 'info');
 }
 
-// ─── DATA SYNC ─────────────────────────────────────────────
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
 async function loadData() {
   try {
     const data = await api('/api/planner');
@@ -1240,6 +827,7 @@ async function loadData() {
     };
     document.body.className = state.data.theme;
     updateThemeButton();
+    setSyncStatus('synced');
   } catch (err) {
     console.error('Load data failed:', err);
     showToast('Failed to load data', 'error');
@@ -1247,7 +835,7 @@ async function loadData() {
   }
 }
 
-function scheduleSave() {
+function saveData() {
   setSyncStatus('syncing');
   if (state.syncTimeout) clearTimeout(state.syncTimeout);
   state.syncTimeout = setTimeout(async () => {
@@ -1257,19 +845,31 @@ function scheduleSave() {
     } catch (err) {
       console.error('Save failed:', err);
       setSyncStatus('error');
-      showToast('Sync failed - changes saved locally', 'error');
+      showToast('Sync failed', 'error');
     }
   }, 800);
 }
 
-function saveData() {
-  scheduleSave();
+async function forceSync() {
+  setSyncStatus('syncing');
+  try {
+    await api('/api/planner', 'PUT', state.data);
+    setSyncStatus('synced');
+    showToast('Synced! ☁️', 'success');
+  } catch (err) {
+    setSyncStatus('error');
+    showToast('Sync failed', 'error');
+  }
 }
 
-// ─── SHOW APP ──────────────────────────────────────────────
+// ═══════════════════════════════════════
+// SHOW APP
+// ═══════════════════════════════════════
 function showApp() {
   $('authScreen').classList.add('hidden');
   $('mainApp').classList.remove('hidden');
+  document.body.className = state.data.theme;
+  updateThemeButton();
 
   if (state.user) {
     $('userAvatar').textContent = state.user.username.charAt(0).toUpperCase();
@@ -1280,15 +880,15 @@ function showApp() {
   const today = getTodayISO();
   state.selectedDate = today;
   $('currentDate').value = today;
-
-  const todayDate = new Date();
-  state.calendarMonth = todayDate.getMonth();
-  state.calendarYear = todayDate.getFullYear();
-
+  const d = new Date();
+  state.calendarMonth = d.getMonth();
+  state.calendarYear = d.getFullYear();
   renderAll();
 }
 
-// ─── RENDER ────────────────────────────────────────────────
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
 function renderAll() {
   renderStats();
   renderLongTerms();
@@ -1297,88 +897,61 @@ function renderAll() {
 }
 
 function renderStats() {
-  // Calculate streak
   const today = new Date();
-  let streak = 0;
-  let checkDate = new Date(today);
-
+  let streak = 0, cd = new Date(today);
   while (true) {
-    const y = checkDate.getFullYear();
-    const m = String(checkDate.getMonth()+1).padStart(2,'0');
-    const d = String(checkDate.getDate()).padStart(2,'0');
-    const iso = `${y}-${m}-${d}`;
-
+    const iso = `${cd.getFullYear()}-${String(cd.getMonth()+1).padStart(2,'0')}-${String(cd.getDate()).padStart(2,'0')}`;
     const tasks = state.data.tasks[iso] || [];
     const goals = state.data.longTerms.filter(g => iso >= g.start && iso <= g.end);
-    const hasCompletedTask = tasks.some(t => t.completed);
-    const hasCompletedGoal = goals.some(g => state.data.goalProgress[g.id]?.[iso]);
-
-    if (hasCompletedTask || hasCompletedGoal) {
+    if (tasks.some(t => t.completed) || goals.some(g => state.data.goalProgress[g.id]?.[iso])) {
       streak++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
-    }
+      cd.setDate(cd.getDate() - 1);
+    } else break;
   }
-
   state.data.streak = streak;
   $('points').textContent = state.data.points;
   $('streak').textContent = streak;
   $('level').textContent = Math.floor(state.data.points / 100) + 1;
 }
 
-function getDatesInRange(start, end) {
-  const dates = [];
-  const current = new Date(start + 'T00:00:00');
-  const endDate = new Date(end + 'T00:00:00');
-  while (current <= endDate) {
-    const y = current.getFullYear();
-    const m = String(current.getMonth()+1).padStart(2,'0');
-    const d = String(current.getDate()).padStart(2,'0');
-    dates.push(`${y}-${m}-${d}`);
-    current.setDate(current.getDate() + 1);
+function getDatesInRange(s, e) {
+  const dates = [], c = new Date(s + 'T00:00:00'), end = new Date(e + 'T00:00:00');
+  while (c <= end) {
+    dates.push(`${c.getFullYear()}-${String(c.getMonth()+1).padStart(2,'0')}-${String(c.getDate()).padStart(2,'0')}`);
+    c.setDate(c.getDate() + 1);
   }
   return dates;
 }
 
 function calculateGoalProgress(goal) {
   const dates = getDatesInRange(goal.start, goal.end);
-  const completed = dates.filter(date => state.data.goalProgress[goal.id]?.[date]).length;
-  return {
-    completed,
-    total: dates.length,
-    percentage: dates.length > 0 ? Math.round((completed / dates.length) * 100) : 0
-  };
+  const completed = dates.filter(d => state.data.goalProgress[goal.id]?.[d]).length;
+  return { completed, total: dates.length, percentage: dates.length > 0 ? Math.round((completed / dates.length) * 100) : 0 };
 }
 
 function renderLongTerms() {
   const container = $('longTermList');
   container.innerHTML = '';
   $('goalCount').textContent = state.data.longTerms.length;
-
   if (state.data.longTerms.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🎯</div>No goals yet. Set one above!</div>';
+    container.innerHTML = '<div class="empty-state"><span class="empty-icon">🎯</span>No goals yet. Set one above!</div>';
     return;
   }
-
   state.data.longTerms.forEach((goal, index) => {
-    const progress = calculateGoalProgress(goal);
+    const p = calculateGoalProgress(goal);
     const div = document.createElement('div');
     div.className = 'goal-card';
-
     div.innerHTML = `
       <div class="goal-card-header">
         <div class="goal-card-name">${escapeHtml(goal.name)}</div>
-        <button class="btn btn-danger btn-sm" onclick="deleteGoal(${index})">🗑️</button>
+        <button class="btn btn-danger btn-sm" data-del="${index}">🗑️</button>
       </div>
       <div class="goal-card-dates">📅 ${goal.start} → ${goal.end}</div>
       <div class="goal-progress-container">
-        <div class="goal-progress-bar">
-          <div class="goal-progress-fill" style="width:${progress.percentage}%"></div>
-        </div>
-        <div class="goal-progress-text">${progress.completed}/${progress.total} (${progress.percentage}%)</div>
-      </div>
-    `;
+        <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:${p.percentage}%"></div></div>
+        <div class="goal-progress-text">${p.completed}/${p.total} · ${p.percentage}%</div>
+      </div>`;
+    div.querySelector('[data-del]').onclick = () => deleteGoal(index);
     container.appendChild(div);
   });
 }
@@ -1386,60 +959,42 @@ function renderLongTerms() {
 function renderTasks(date) {
   const list = $('taskList');
   list.innerHTML = '';
-
   const activeGoals = state.data.longTerms.filter(g => date >= g.start && date <= g.end);
   const daily = state.data.tasks[date] || [];
-
   $('taskCount').textContent = activeGoals.length + daily.length;
 
   if (activeGoals.length === 0 && daily.length === 0) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>No tasks for this day</div>';
+    list.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span>No tasks for this day</div>';
     return;
   }
 
-  // Render goal tasks
   activeGoals.forEach(goal => {
-    const isChecked = state.data.goalProgress[goal.id]?.[date] || false;
+    const checked = state.data.goalProgress[goal.id]?.[date] || false;
     const card = document.createElement('div');
     card.className = 'task-card';
-
     card.innerHTML = `
-      <div class="custom-checkbox ${isChecked ? 'checked' : ''}" data-goal-id="${goal.id}" data-date="${date}">
-        ${isChecked ? '✓' : ''}
-      </div>
+      <div class="custom-checkbox ${checked ? 'checked' : ''}">${checked ? '✓' : ''}</div>
       <div class="task-content">
-        <span class="task-name ${isChecked ? 'completed' : ''}">${escapeHtml(goal.name)}<span class="task-badge">Goal</span></span>
-      </div>
-    `;
-
-    const checkbox = card.querySelector('.custom-checkbox');
-    checkbox.addEventListener('click', () => toggleGoalTask(goal.id, date));
-
+        <span class="task-name ${checked ? 'completed' : ''}">${escapeHtml(goal.name)}<span class="task-badge">Goal</span></span>
+      </div>`;
+    card.querySelector('.custom-checkbox').onclick = () => toggleGoalTask(goal.id, date);
     list.appendChild(card);
   });
 
-  // Render daily tasks
   daily.forEach((task, i) => {
+    const checked = task.completed || false;
     const card = document.createElement('div');
     card.className = 'task-card';
-    const isChecked = task.completed || false;
-
     card.innerHTML = `
-      <div class="custom-checkbox ${isChecked ? 'checked' : ''}" data-task-index="${i}" data-date="${date}">
-        ${isChecked ? '✓' : ''}
-      </div>
-      <div class="task-content">
-        <span class="task-name ${isChecked ? 'completed' : ''}">${escapeHtml(task.name)}</span>
-      </div>
+      <div class="custom-checkbox ${checked ? 'checked' : ''}">${checked ? '✓' : ''}</div>
+      <div class="task-content"><span class="task-name ${checked ? 'completed' : ''}">${escapeHtml(task.name)}</span></div>
       <div class="task-actions">
-        <button class="btn btn-outline btn-icon btn-sm" onclick="editTask('${date}', ${i})">✏️</button>
-        <button class="btn btn-outline btn-icon btn-sm" onclick="deleteTask('${date}', ${i})">🗑️</button>
-      </div>
-    `;
-
-    const checkbox = card.querySelector('.custom-checkbox');
-    checkbox.addEventListener('click', () => toggleDailyTask(date, i));
-
+        <button class="btn btn-outline btn-icon btn-sm" data-edit="${i}">✏️</button>
+        <button class="btn btn-outline btn-icon btn-sm" data-del="${i}">🗑️</button>
+      </div>`;
+    card.querySelector('.custom-checkbox').onclick = () => toggleDailyTask(date, i);
+    card.querySelector('[data-edit]').onclick = () => editTask(date, i);
+    card.querySelector('[data-del]').onclick = () => deleteTask(date, i);
     list.appendChild(card);
   });
 }
@@ -1447,11 +1002,9 @@ function renderTasks(date) {
 function renderCalendar() {
   const cal = $('calendar');
   cal.innerHTML = '';
-
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  $('calMonthLabel').textContent = `${monthNames[state.calendarMonth]} ${state.calendarYear}`;
-
-  const todayISO = getTodayISO();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  $('calMonthLabel').textContent = `${months[state.calendarMonth]} ${state.calendarYear}`;
+  const today = getTodayISO();
 
   ['S','M','T','W','T','F','S'].forEach(d => {
     const h = document.createElement('div');
@@ -1460,73 +1013,50 @@ function renderCalendar() {
     cal.appendChild(h);
   });
 
-  const firstDay = new Date(state.calendarYear, state.calendarMonth, 1);
-  const startDay = firstDay.getDay();
+  const firstDay = new Date(state.calendarYear, state.calendarMonth, 1).getDay();
   const daysInMonth = new Date(state.calendarYear, state.calendarMonth + 1, 0).getDate();
 
-  for (let i = 0; i < startDay; i++) {
-    cal.appendChild(document.createElement('div'));
-  }
+  for (let i = 0; i < firstDay; i++) cal.appendChild(document.createElement('div'));
 
   for (let day = 1; day <= daysInMonth; day++) {
-    const month = String(state.calendarMonth + 1).padStart(2, '0');
-    const dayStr = String(day).padStart(2, '0');
-    const iso = `${state.calendarYear}-${month}-${dayStr}`;
-
+    const m = String(state.calendarMonth + 1).padStart(2, '0');
+    const d = String(day).padStart(2, '0');
+    const iso = `${state.calendarYear}-${m}-${d}`;
     const cell = document.createElement('div');
     cell.className = 'cal-day';
-
-    if (iso === todayISO) cell.classList.add('today');
+    if (iso === today) cell.classList.add('today');
     if (iso === state.selectedDate) cell.classList.add('selected');
 
     const num = document.createElement('span');
     num.textContent = day;
     cell.appendChild(num);
 
-    // Dots
-    const dailyTasks = state.data.tasks[iso] || [];
-    const goalsForDay = state.data.longTerms.filter(g => iso >= g.start && iso <= g.end);
-
+    const tasks = state.data.tasks[iso] || [];
+    const goals = state.data.longTerms.filter(g => iso >= g.start && iso <= g.end);
     const dots = document.createElement('div');
     dots.className = 'day-dots';
-
-    if (dailyTasks.length > 0) {
-      const dot = document.createElement('div');
-      dot.className = 'dot task-dot';
-      dots.appendChild(dot);
-    }
-    if (goalsForDay.length > 0) {
-      const dot = document.createElement('div');
-      dot.className = 'dot goal-dot';
-      dots.appendChild(dot);
-    }
-
-    const allDailyDone = dailyTasks.length > 0 && dailyTasks.every(t => t.completed);
-    const allGoalsDone = goalsForDay.length > 0 && goalsForDay.every(g => state.data.goalProgress[g.id]?.[iso]);
-
-    if ((allDailyDone && dailyTasks.length > 0) || (allGoalsDone && goalsForDay.length > 0)) {
-      const dot = document.createElement('div');
-      dot.className = 'dot done-dot';
-      dots.appendChild(dot);
-    }
-
+    if (tasks.length) { const dot = document.createElement('div'); dot.className = 'dot task-dot'; dots.appendChild(dot); }
+    if (goals.length) { const dot = document.createElement('div'); dot.className = 'dot goal-dot'; dots.appendChild(dot); }
+    const allTDone = tasks.length && tasks.every(t => t.completed);
+    const allGDone = goals.length && goals.every(g => state.data.goalProgress[g.id]?.[iso]);
+    if (allTDone || allGDone) { const dot = document.createElement('div'); dot.className = 'dot done-dot'; dots.appendChild(dot); }
     cell.appendChild(dots);
 
-    cell.addEventListener('click', () => {
+    cell.onclick = () => {
       state.selectedDate = iso;
       $('currentDate').value = iso;
       renderTasks(iso);
       renderCalendar();
-    });
-
+    };
     cal.appendChild(cell);
   }
 }
 
-// ─── ACTIONS ───────────────────────────────────────────────
+// ═══════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════
 function toggleGoalTask(goalId, date) {
   if (!state.data.goalProgress[goalId]) state.data.goalProgress[goalId] = {};
-
   if (state.data.goalProgress[goalId][date]) {
     delete state.data.goalProgress[goalId][date];
     state.data.points = Math.max(0, state.data.points - 15);
@@ -1535,212 +1065,141 @@ function toggleGoalTask(goalId, date) {
     state.data.points += 15;
     showToast('+15 points! 🎯', 'success');
   }
-
-  saveData();
-  renderAll();
+  saveData(); renderAll();
 }
 
-function toggleDailyTask(date, index) {
-  const task = state.data.tasks[date][index];
-  if (task.completed) {
-    task.completed = false;
-    state.data.points = Math.max(0, state.data.points - 10);
-  } else {
-    task.completed = true;
-    state.data.points += 10;
-    showToast('+10 points! ⭐', 'success');
-  }
-
-  saveData();
-  renderAll();
+function toggleDailyTask(date, i) {
+  const t = state.data.tasks[date][i];
+  if (t.completed) { t.completed = false; state.data.points = Math.max(0, state.data.points - 10); }
+  else { t.completed = true; state.data.points += 10; showToast('+10 points! ⭐', 'success'); }
+  saveData(); renderAll();
 }
 
-function editTask(date, index) {
-  const task = state.data.tasks[date][index];
-  const newName = prompt('Edit task', task.name);
-  if (newName === null || newName.trim() === '') return;
-  state.data.tasks[date][index].name = newName.trim();
-  saveData();
-  renderTasks(date);
+function editTask(date, i) {
+  const n = prompt('Edit task', state.data.tasks[date][i].name);
+  if (n === null || !n.trim()) return;
+  state.data.tasks[date][i].name = n.trim();
+  saveData(); renderTasks(date);
 }
 
-function deleteTask(date, index) {
-  if (state.data.tasks[date][index].completed) {
-    state.data.points = Math.max(0, state.data.points - 10);
-  }
-  state.data.tasks[date].splice(index, 1);
-  if (state.data.tasks[date].length === 0) delete state.data.tasks[date];
-  saveData();
-  renderAll();
+function deleteTask(date, i) {
+  if (state.data.tasks[date][i].completed) state.data.points = Math.max(0, state.data.points - 10);
+  state.data.tasks[date].splice(i, 1);
+  if (!state.data.tasks[date].length) delete state.data.tasks[date];
+  saveData(); renderAll();
 }
 
-function deleteGoal(index) {
-  const goal = state.data.longTerms[index];
-  if (!confirm(`Delete goal "${goal.name}"?`)) return;
-  delete state.data.goalProgress[goal.id];
-  state.data.longTerms.splice(index, 1);
-  saveData();
-  renderAll();
+function deleteGoal(i) {
+  const g = state.data.longTerms[i];
+  if (!confirm(`Delete "${g.name}"?`)) return;
+  delete state.data.goalProgress[g.id];
+  state.data.longTerms.splice(i, 1);
+  saveData(); renderAll();
   showToast('Goal deleted', 'info');
 }
 
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+// ═══════════════════════════════════════
+// EVENT LISTENERS
+// ═══════════════════════════════════════
+$('loginTab').onclick = () => switchAuthTab('login');
+$('registerTab').onclick = () => switchAuthTab('register');
+$('loginBtn').onclick = handleLogin;
+$('registerBtn').onclick = handleRegister;
+$('loginPassword').onkeypress = e => { if (e.key === 'Enter') handleLogin(); };
+$('regPassword').onkeypress = e => { if (e.key === 'Enter') handleRegister(); };
+$('logoutBtn').onclick = handleLogout;
+$('syncBtn').onclick = forceSync;
 
-function updateThemeButton() {
-  $('themeToggle').textContent = state.data.theme === 'dark' ? '☀️' : '🌙';
-}
-
-// ─── EVENT LISTENERS ───────────────────────────────────────
-$('addTask').addEventListener('click', () => {
-  const date = state.selectedDate;
-  const name = $('taskInput').value.trim();
+$('addTask').onclick = () => {
+  const date = state.selectedDate, name = $('taskInput').value.trim();
   if (!name) return;
   if (!state.data.tasks[date]) state.data.tasks[date] = [];
   state.data.tasks[date].push({ name, completed: false });
   $('taskInput').value = '';
-  saveData();
-  renderAll();
+  saveData(); renderAll();
   showToast('Task added! 📋', 'success');
-});
+};
+$('taskInput').onkeypress = e => { if (e.key === 'Enter') $('addTask').click(); };
 
-$('taskInput').addEventListener('keypress', e => {
-  if (e.key === 'Enter') $('addTask').click();
-});
-
-$('addLongTerm').addEventListener('click', () => {
-  const name = $('ltName').value.trim();
-  const start = $('ltStart').value;
-  const end = $('ltEnd').value;
-
-  if (!name || !start || !end) {
-    showToast('Please fill all goal fields', 'error');
-    return;
-  }
-  if (start > end) {
-    showToast('Start date must be before end date', 'error');
-    return;
-  }
-
+$('addLongTerm').onclick = () => {
+  const name = $('ltName').value.trim(), start = $('ltStart').value, end = $('ltEnd').value;
+  if (!name || !start || !end) { showToast('Fill all goal fields', 'error'); return; }
+  if (start > end) { showToast('Start must be before end', 'error'); return; }
   state.data.longTerms.push({ id: generateId(), name, start, end });
-  $('ltName').value = '';
-  $('ltStart').value = '';
-  $('ltEnd').value = '';
-  saveData();
-  renderAll();
+  $('ltName').value = ''; $('ltStart').value = ''; $('ltEnd').value = '';
+  saveData(); renderAll();
   showToast('Goal added! 🎯', 'success');
-});
+};
 
-$('currentDate').addEventListener('change', () => {
+$('currentDate').onchange = () => {
   state.selectedDate = $('currentDate').value;
   const [y, m] = state.selectedDate.split('-').map(Number);
-  state.calendarMonth = m - 1;
-  state.calendarYear = y;
-  renderTasks(state.selectedDate);
-  renderCalendar();
-});
+  state.calendarMonth = m - 1; state.calendarYear = y;
+  renderTasks(state.selectedDate); renderCalendar();
+};
 
-$('todayBtn').addEventListener('click', () => {
-  const today = getTodayISO();
-  state.selectedDate = today;
-  $('currentDate').value = today;
-  const t = new Date();
-  state.calendarMonth = t.getMonth();
-  state.calendarYear = t.getFullYear();
-  renderTasks(today);
-  renderCalendar();
-});
+$('todayBtn').onclick = () => {
+  const t = getTodayISO();
+  state.selectedDate = t; $('currentDate').value = t;
+  const d = new Date();
+  state.calendarMonth = d.getMonth(); state.calendarYear = d.getFullYear();
+  renderTasks(t); renderCalendar();
+};
 
-$('calPrev').addEventListener('click', () => {
+$('calPrev').onclick = () => {
   state.calendarMonth--;
-  if (state.calendarMonth < 0) {
-    state.calendarMonth = 11;
-    state.calendarYear--;
-  }
+  if (state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
   renderCalendar();
-});
-
-$('calNext').addEventListener('click', () => {
+};
+$('calNext').onclick = () => {
   state.calendarMonth++;
-  if (state.calendarMonth > 11) {
-    state.calendarMonth = 0;
-    state.calendarYear++;
-  }
+  if (state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
   renderCalendar();
-});
+};
 
-$('themeToggle').addEventListener('click', () => {
+$('themeToggle').onclick = () => {
   state.data.theme = state.data.theme === 'dark' ? 'light' : 'dark';
   document.body.className = state.data.theme;
   updateThemeButton();
   saveData();
-});
+};
 
-$('logoutBtn').addEventListener('click', handleLogout);
-
-$('resetToday').addEventListener('click', () => {
-  const date = state.selectedDate;
+$('resetToday').onclick = () => {
   if (!confirm('Reset all tasks for this day?')) return;
-  delete state.data.tasks[date];
-  state.data.longTerms.forEach(goal => {
-    if (state.data.goalProgress[goal.id]) {
-      delete state.data.goalProgress[goal.id][date];
-    }
-  });
-  saveData();
-  renderAll();
-  showToast('Day reset', 'info');
-});
+  const d = state.selectedDate;
+  delete state.data.tasks[d];
+  state.data.longTerms.forEach(g => { if (state.data.goalProgress[g.id]) delete state.data.goalProgress[g.id][d]; });
+  saveData(); renderAll(); showToast('Day reset', 'info');
+};
 
-$('resetStats').addEventListener('click', () => {
+$('resetStats').onclick = () => {
   if (!confirm('Reset points and streak?')) return;
-  state.data.points = 0;
-  state.data.streak = 0;
-  saveData();
-  renderStats();
-  showToast('Stats reset', 'info');
-});
+  state.data.points = 0; state.data.streak = 0;
+  saveData(); renderStats(); showToast('Stats reset', 'info');
+};
 
-$('resetAll').addEventListener('click', async () => {
-  if (!confirm('Delete EVERYTHING? This cannot be undone!')) return;
+$('resetAll').onclick = async () => {
+  if (!confirm('Delete EVERYTHING? Cannot undo!')) return;
   showLoading();
   try {
     await api('/api/planner', 'DELETE');
-    state.data = {
-      tasks: {},
-      longTerms: [],
-      goalProgress: {},
-      points: 0,
-      streak: 0,
-      theme: state.data.theme
-    };
-    renderAll();
-    showToast('All data deleted', 'info');
-  } catch (err) {
-    showToast('Failed to reset', 'error');
-  } finally {
-    hideLoading();
-  }
-});
+    state.data = { tasks: {}, longTerms: [], goalProgress: {}, points: 0, streak: 0, theme: state.data.theme };
+    renderAll(); showToast('All data deleted', 'info');
+  } catch (err) { showToast('Failed to reset', 'error'); }
+  finally { hideLoading(); }
+};
 
-// Enter key on auth forms
-$('loginPassword').addEventListener('keypress', e => { if (e.key === 'Enter') handleLogin(); });
-$('regPassword').addEventListener('keypress', e => { if (e.key === 'Enter') handleRegister(); });
-
-// ─── INIT ──────────────────────────────────────────────────
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
 async function init() {
   if (state.token && state.user) {
     showLoading();
     try {
-      // Verify token is still valid
       await api('/api/auth/me');
       await loadData();
       showApp();
     } catch (err) {
-      // Token expired or invalid
       localStorage.removeItem('planner_token');
       localStorage.removeItem('planner_user');
       state.token = null;
