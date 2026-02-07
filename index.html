@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Activity Planner</title>
+  <link rel="manifest" href="data:application/json,{}" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <style>
+    :root {
+      --bg-dark: #0a0a0f;
+      --card-dark: #16161e;
+      --text-dark: #e8e8ef;
+      --bg-light: #f0f2f5;
+      --card-light: #ffffff;
+      --text-light: #1a1a2e;
+      --accent: #6c5ce7;
+      --accent-glow: rgba(108, 92, 231, 0.3);
+      --success: #00b894;
+      --success-glow: rgba(0, 184, 148, 0.3);
+      --danger: #e74c3c;
+      --warning: #fdcb6e;
+      --border-dark: #2d2d3a;
+      --border-light: #e0e0e8;
+      --gradient-1: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      --gradient-2: linear-gradient(135deg, #00b894, #55efc4);
+      --gradient-3: linear-gradient(135deg, #e74c3c, #fd79a8);
+      --shadow-dark: 0 4px 20px rgba(0,0,0,0.4);
+      --shadow-light: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    body.light {
+      background: var(--bg-light);
+      color: var(--text-light);
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    body.dark ::-webkit-scrollbar-thumb { background: var(--border-dark); border-radius: 3px; }
+    body.light ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+    /* ─── Auth Screen ─── */
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 32px 24px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    body.dark .auth-container {
+      background: var(--card-dark);
+      box-shadow: var(--shadow-dark);
+      border: 1px solid var(--border-dark);
+    }
+
+    body.light .auth-container {
+      background: var(--card-light);
+      box-shadow: var(--shadow-light);
+      border: 1px solid var(--border-light);
+    }
+
+    .auth-container .logo {
+      font-size: 48px;
+      margin-bottom: 8px;
+    }
+
+    .auth-container h2 {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .auth-container .subtitle {
+      opacity: 0.6;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    body.dark .auth-tabs { background: var(--bg-dark); }
+    body.light .auth-tabs { background: var(--bg-light); }
+
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      border-radius: 12px;
+    }
+
+    body.dark .auth-tab { background: transparent; color: var(--text-dark); opacity: 0.5; }
+    body.light .auth-tab { background: transparent; color: var(--text-light); opacity: 0.5; }
+    .auth-tab.active { background: var(--accent) !important; color: white !important; opacity: 1 !important; }
+
+    .auth-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      font-size: 15px;
+      margin-bottom: 12px;
+      transition: border-color 0.3s;
+      outline: none;
+    }
+
+    body.dark .auth-input {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      border-color: var(--border-dark);
+    }
+
+    body.light .auth-input {
+      background: var(--bg-light);
+      color: var(--text-light);
+      border-color: var(--border-light);
+    }
+
+    .auth-input:focus {
+      border-color: var(--accent);
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--gradient-1);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      margin-top: 8px;
+    }
+
+    .auth-btn:active { transform: scale(0.97); }
+    .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .auth-error {
+      color: var(--danger);
+      font-size: 13px;
+      margin-bottom: 12px;
+      min-height: 20px;
+    }
+
+    /* ─── Main App ─── */
+    .app {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: 16px;
+      padding-bottom: 30px;
+      display: none;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 8px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .header-left h1 {
+      font-size: 22px;
+      margin: 0;
+      background: var(--gradient-1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, background 0.3s;
+      padding: 0;
+    }
+
+    .icon-btn:active { transform: scale(0.9); }
+
+    body.dark .icon-btn {
+      background: var(--card-dark);
+      color: var(--text-dark);
+      border: 1px solid var(--border-dark);
+    }
+
+    body.light .icon-btn {
+      background: var(--card-light);
+      color: var(--text-light);
+      border: 1px solid var(--border-light);
+    }
+
+    /* ─── User Info Bar ─── */
+    .user-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    body.dark .user-bar {
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+    }
+
+    body.light .user-bar {
+      background: var(--card-light);
+      border: 1px solid var(--border-light);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--gradient-1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .user-email {
+      opacity: 0.5;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sync-indicator {
+      font-size: 12px;
+      opacity: 0.6;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sync-indicator.syncing { color: var(--warning); }
+    .sync-indicator.synced { color: var(--success); }
+    .sync-indicator.error { color: var(--danger); }
+
+    /* ─── Stats Cards ─── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      padding: 16px 12px;
+      border-radius: 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body.dark .stat-card {
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+      box-shadow: var(--shadow-dark);
+    }
+
+    body.light .stat-card {
+      background: var(--card-light);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-light);
+    }
+
+    .stat-card .stat-icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .stat-card .stat-label {
+      font-size: 11px;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card:nth-child(1) .stat-value { color: var(--warning); }
+    .stat-card:nth-child(2) .stat-value { color: #e74c3c; }
+    .stat-card:nth-child(3) .stat-value { color: var(--accent); }
+
+    /* ─── Section ─── */
+    section {
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .section-header h2 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .section-header .badge {
+      background: var(--accent);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ─── Inputs ─── */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .modern-input {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    body.dark .modern-input {
+      background: var(--card-dark);
+      color: var(--text-dark);
+      border-color: var(--border-dark);
+    }
+
+    body.light .modern-input {
+      background: var(--card-light);
+      color: var(--text-light);
+      border-color: var(--border-light);
+    }
+
+    .modern-input:focus {
+      border-color: var(--accent);
+    }
+
+    .modern-input::placeholder {
+      opacity: 0.4;
+    }
+
+    /* ─── Buttons ─── */
+    .btn {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 0.1s, opacity 0.2s;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:active { transform: scale(0.95); }
+
+    .btn-primary {
+      background: var(--gradient-1);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--gradient-2);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--gradient-3);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent;
+    }
+
+    body.dark .btn-outline {
+      color: var(--text-dark);
+      border: 1px solid var(--border-dark);
+    }
+
+    body.light .btn-outline {
+      color: var(--text-light);
+      border: 1px solid var(--border-light);
+    }
+
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 8px;
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* ─── Goal Cards ─── */
+    .goal-card {
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body.dark .goal-card {
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+      box-shadow: var(--shadow-dark);
+    }
+
+    body.light .goal-card {
+      background: var(--card-light);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-light);
+    }
+
+    .goal-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .goal-card-name {
+      font-weight: 700;
+      font-size: 15px;
+      flex: 1;
+      min-width: 0;
+      word-wrap: break-word;
+    }
+
+    .goal-card-dates {
+      font-size: 12px;
+      opacity: 0.5;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .goal-progress-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .goal-progress-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    body.dark .goal-progress-bar { background: var(--border-dark); }
+    body.light .goal-progress-bar { background: var(--border-light); }
+
+    .goal-progress-fill {
+      height: 100%;
+      background: var(--gradient-2);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .goal-progress-text {
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    /* ─── Task Items ─── */
+    .task-card {
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.2s, opacity 0.3s;
+    }
+
+    body.dark .task-card {
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+    }
+
+    body.light .task-card {
+      background: var(--card-light);
+      border: 1px solid var(--border-light);
+    }
+
+    .custom-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.3s;
+      font-size: 14px;
+    }
+
+    body.dark .custom-checkbox {
+      border: 2px solid var(--border-dark);
+      background: transparent;
+    }
+
+    body.light .custom-checkbox {
+      border: 2px solid var(--border-light);
+      background: transparent;
+    }
+
+    .custom-checkbox.checked {
+      background: var(--gradient-2) !important;
+      border-color: var(--success) !important;
+      color: white;
+    }
+
+    .task-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-name {
+      font-size: 14px;
+      font-weight: 500;
+      word-wrap: break-word;
+      transition: opacity 0.3s;
+    }
+
+    .task-name.completed {
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+
+    .task-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    /* ─── Calendar ─── */
+    .calendar-container {
+      border-radius: 16px;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    body.dark .calendar-container {
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+      box-shadow: var(--shadow-dark);
+    }
+
+    body.light .calendar-container {
+      background: var(--card-light);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-light);
+    }
+
+    .calendar-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .calendar-nav .month-label {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .calendar-nav button {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s;
+      padding: 0;
+    }
+
+    .calendar-nav button:active { transform: scale(0.9); }
+
+    body.dark .calendar-nav button {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      border: 1px solid var(--border-dark);
+    }
+
+    body.light .calendar-nav button {
+      background: var(--bg-light);
+      color: var(--text-light);
+      border: 1px solid var(--border-light);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-header {
+      font-size: 11px;
+      text-align: center;
+      opacity: 0.5;
+      padding: 6px 0;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 500;
+      transition: transform 0.15s, border-color 0.3s;
+      border: 2px solid transparent;
+    }
+
+    body.dark .cal-day { background: var(--bg-dark); }
+    body.light .cal-day { background: var(--bg-light); }
+
+    .cal-day:active { transform: scale(0.9); }
+
+    .cal-day.today {
+      font-weight: 700;
+    }
+
+    body.dark .cal-day.today { background: var(--border-dark); }
+    body.light .cal-day.today { background: var(--border-light); }
+
+    .cal-day.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .cal-day .day-dots {
+      display: flex;
+      gap: 2px;
+      position: absolute;
+      bottom: 3px;
+    }
+
+    .cal-day .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+    }
+
+    .dot.task-dot { background: var(--accent); }
+    .dot.goal-dot { background: var(--warning); }
+    .dot.done-dot { background: var(--success); }
+
+    /* ─── Date Picker Section ─── */
+    .date-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      border-radius: 14px;
+    }
+
+    body.dark .date-section {
+      background: var(--card-dark);
+      border: 1px solid var(--border-dark);
+    }
+
+    body.light .date-section {
+      background: var(--card-light);
+      border: 1px solid var(--border-light);
+    }
+
+    .date-section .date-label {
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .date-section input[type="date"] {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ─── Action Buttons ─── */
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .action-grid .btn {
+      font-size: 13px;
+    }
+
+    .action-grid .btn-full-span {
+      grid-column: 1 / -1;
+    }
+
+    /* ─── Empty State ─── */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      opacity: 0.4;
+      font-size: 14px;
+    }
+
+    .empty-state .empty-icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    /* ─── Toast ─── */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: calc(100% - 32px);
+      max-width: 400px;
+    }
+
+    .toast {
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 500;
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+      pointer-events: auto;
+      text-align: center;
+      backdrop-filter: blur(20px);
+    }
+
+    body.dark .toast {
+      background: rgba(22, 22, 30, 0.95);
+      border: 1px solid var(--border-dark);
+      box-shadow: var(--shadow-dark);
+    }
+
+    body.light .toast {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-light);
+    }
+
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.info { border-left: 4px solid var(--accent); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+
+    /* ─── Loading ─── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid transparent;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hidden { display: none !important; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 380px) {
+      .header-left h1 { font-size: 18px; }
+      .stat-card { padding: 12px 8px; }
+      .stat-card .stat-value { font-size: 18px; }
+      .stat-card .stat-icon { font-size: 20px; }
+      .btn { padding: 10px 14px; font-size: 13px; }
+      .cal-day { font-size: 11px; }
+    }
+  </style>
+</head>
+<body class="dark">
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay hidden" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Auth Screen -->
+  <div class="auth-screen" id="authScreen">
+    <div class="auth-container">
+      <div class="logo">🎮</div>
+      <h2>Activity Planner</h2>
+      <p class="subtitle">Track goals, build streaks, level up</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Login</button>
+        <button class="auth-tab" id="registerTab" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <div class="auth-error" id="authError"></div>
+
+      <div id="loginForm">
+        <input class="auth-input" type="email" id="loginEmail" placeholder="Email" autocomplete="email" />
+        <input class="auth-input" type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
+        <button class="auth-btn" onclick="handleLogin()">Login</button>
+      </div>
+
+      <div id="registerForm" class="hidden">
+        <input class="auth-input" type="text" id="regUsername" placeholder="Username" autocomplete="username" />
+        <input class="auth-input" type="email" id="regEmail" placeholder="Email" autocomplete="email" />
+        <input class="auth-input" type="password" id="regPassword" placeholder="Password (min 6 chars)" autocomplete="new-password" />
+        <button class="auth-btn" onclick="handleRegister()">Create Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app hidden" id="mainApp">
+    <header>
+      <div class="header-left">
+        <h1>🎮 Activity Planner</h1>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="themeToggle" title="Toggle theme">🌙</button>
+        <button class="icon-btn" id="logoutBtn" title="Logout">🚪</button>
+      </div>
+    </header>
+
+    <!-- User Bar -->
+    <div class="user-bar">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">User</div>
+        <div class="user-email" id="userEmail">user@email.com</div>
+      </div>
+      <div class="sync-indicator synced" id="syncStatus">
+        <span>✓</span> Synced
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value" id="points">0</div>
+        <div class="stat-label">Points</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-value" id="streak">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value" id="level">1</div>
+        <div class="stat-label">Level</div>
+      </div>
+    </div>
+
+    <!-- Date Picker -->
+    <section>
+      <div class="date-section">
+        <span class="date-label">📅 Viewing:</span>
+        <input type="date" class="modern-input" id="currentDate" />
+        <button class="btn btn-sm btn-outline" id="todayBtn">Today</button>
+      </div>
+    </section>
+
+    <!-- Long-Term Goals -->
+    <section>
+      <div class="section-header">
+        <h2>🎯 Long-Term Goals</h2>
+        <span class="badge" id="goalCount">0</span>
+      </div>
+      <div class="input-row">
+        <input class="modern-input" id="ltName" placeholder="Goal name..." style="flex:2;" />
+      </div>
+      <div class="input-row">
+        <input type="date" class="modern-input" id="ltStart" />
+        <input type="date" class="modern-input" id="ltEnd" />
+      </div>
+      <div class="input-row">
+        <button class="btn btn-primary btn-full" id="addLongTerm">➕ Add Goal</button>
+      </div>
+      <div id="longTermList"></div>
+    </section>
+
+    <!-- Daily Tasks -->
+    <section>
+      <div class="section-header">
+        <h2>📋 Daily Tasks</h2>
+        <span class="badge" id="taskCount">0</span>
+      </div>
+      <div class="input-row">
+        <input class="modern-input" id="taskInput" placeholder="Add a task..." />
+        <button class="btn btn-success btn-icon" id="addTask">+</button>
+      </div>
+      <div id="taskList"></div>
+
+      <div class="action-grid">
+        <button class="btn btn-outline btn-sm" id="resetToday">🔄 Reset Day</button>
+        <button class="btn btn-outline btn-sm" id="resetStats">📊 Reset Stats</button>
+        <button class="btn btn-danger btn-sm btn-full-span" id="resetAll">⚠️ Reset Everything</button>
+      </div>
+    </section>
+
+    <!-- Calendar -->
+    <section>
+      <div class="section-header">
+        <h2>📆 Calendar</h2>
+      </div>
+      <div class="calendar-container">
+        <div class="calendar-nav">
+          <button id="calPrev">‹</button>
+          <span class="month-label" id="calMonthLabel">January 2024</span>
+          <button id="calNext">›</button>
+        </div>
+        <div class="calendar-grid" id="calendar"></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+// ─── CONFIG ────────────────────────────────────────────────
+const API_URL = 'https://activity-planner-backend.onrender.com'; // Change this after deployment
+
+// ─── STATE ─────────────────────────────────────────────────
+let state = {
+  token: localStorage.getItem('planner_token') || null,
+  user: JSON.parse(localStorage.getItem('planner_user') || 'null'),
+  data: {
+    tasks: {},
+    longTerms: [],
+    goalProgress: {},
+    points: 0,
+    streak: 0,
+    theme: 'dark'
+  },
+  calendarMonth: null,
+  calendarYear: null,
+  syncTimeout: null,
+  selectedDate: null
+};
+
+// ─── HELPERS ───────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function getTodayISO() {
+  const t = new Date();
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function showToast(message, type = 'info') {
+  const container = $('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function showLoading() { $('loadingOverlay').classList.remove('hidden'); }
+function hideLoading() { $('loadingOverlay').classList.add('hidden'); }
+
+function setSyncStatus(status) {
+  const el = $('syncStatus');
+  el.className = `sync-indicator ${status}`;
+  if (status === 'syncing') el.innerHTML = '<span>⟳</span> Syncing...';
+  else if (status === 'synced') el.innerHTML = '<span>✓</span> Synced';
+  else el.innerHTML = '<span>✕</span> Offline';
+}
+
+// ─── API ───────────────────────────────────────────────────
+async function api(endpoint, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
+
+  const config = { method, headers };
+  if (body) config.body = JSON.stringify(body);
+
+  const res = await fetch(`${API_URL}${endpoint}`, config);
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+// ─── AUTH ──────────────────────────────────────────────────
+function switchAuthTab(tab) {
+  $('authError').textContent = '';
+  if (tab === 'login') {
+    $('loginTab').classList.add('active');
+    $('registerTab').classList.remove('active');
+    $('loginForm').classList.remove('hidden');
+    $('registerForm').classList.add('hidden');
+  } else {
+    $('registerTab').classList.add('active');
+    $('loginTab').classList.remove('active');
+    $('registerForm').classList.remove('hidden');
+    $('loginForm').classList.add('hidden');
+  }
+}
+
+async function handleLogin() {
+  const email = $('loginEmail').value.trim();
+  const password = $('loginPassword').value;
+  $('authError').textContent = '';
+
+  if (!email || !password) {
+    $('authError').textContent = 'Please fill all fields';
+    return;
+  }
+
+  showLoading();
+  try {
+    const res = await api('/api/auth/login', 'POST', { email, password });
+    state.token = res.token;
+    state.user = res.user;
+    localStorage.setItem('planner_token', res.token);
+    localStorage.setItem('planner_user', JSON.stringify(res.user));
+    await loadData();
+    showApp();
+    showToast('Welcome back! 👋', 'success');
+  } catch (err) {
+    $('authError').textContent = err.message;
+  } finally {
+    hideLoading();
+  }
+}
+
+async function handleRegister() {
+  const username = $('regUsername').value.trim();
+  const email = $('regEmail').value.trim();
+  const password = $('regPassword').value;
+  $('authError').textContent = '';
+
+  if (!username || !email || !password) {
+    $('authError').textContent = 'Please fill all fields';
+    return;
+  }
+
+  showLoading();
+  try {
+    const res = await api('/api/auth/register', 'POST', { username, email, password });
+    state.token = res.token;
+    state.user = res.user;
+    localStorage.setItem('planner_token', res.token);
+    localStorage.setItem('planner_user', JSON.stringify(res.user));
+    await loadData();
+    showApp();
+    showToast('Account created! Let\'s go! 🚀', 'success');
+  } catch (err) {
+    $('authError').textContent = err.message;
+  } finally {
+    hideLoading();
+  }
+}
+
+function handleLogout() {
+  state.token = null;
+  state.user = null;
+  localStorage.removeItem('planner_token');
+  localStorage.removeItem('planner_user');
+  $('mainApp').classList.add('hidden');
+  $('authScreen').classList.remove('hidden');
+  $('loginEmail').value = '';
+  $('loginPassword').value = '';
+  showToast('Logged out', 'info');
+}
+
+// ─── DATA SYNC ─────────────────────────────────────────────
+async function loadData() {
+  try {
+    const data = await api('/api/planner');
+    state.data = {
+      tasks: data.tasks || {},
+      longTerms: data.longTerms || [],
+      goalProgress: data.goalProgress || {},
+      points: data.points || 0,
+      streak: data.streak || 0,
+      theme: data.theme || 'dark'
+    };
+    document.body.className = state.data.theme;
+    updateThemeButton();
+  } catch (err) {
+    console.error('Load data failed:', err);
+    showToast('Failed to load data', 'error');
+    setSyncStatus('error');
+  }
+}
+
+function scheduleSave() {
+  setSyncStatus('syncing');
+  if (state.syncTimeout) clearTimeout(state.syncTimeout);
+  state.syncTimeout = setTimeout(async () => {
+    try {
+      await api('/api/planner', 'PUT', state.data);
+      setSyncStatus('synced');
+    } catch (err) {
+      console.error('Save failed:', err);
+      setSyncStatus('error');
+      showToast('Sync failed - changes saved locally', 'error');
+    }
+  }, 800);
+}
+
+function saveData() {
+  scheduleSave();
+}
+
+// ─── SHOW APP ──────────────────────────────────────────────
+function showApp() {
+  $('authScreen').classList.add('hidden');
+  $('mainApp').classList.remove('hidden');
+
+  if (state.user) {
+    $('userAvatar').textContent = state.user.username.charAt(0).toUpperCase();
+    $('userName').textContent = state.user.username;
+    $('userEmail').textContent = state.user.email;
+  }
+
+  const today = getTodayISO();
+  state.selectedDate = today;
+  $('currentDate').value = today;
+
+  const todayDate = new Date();
+  state.calendarMonth = todayDate.getMonth();
+  state.calendarYear = todayDate.getFullYear();
+
+  renderAll();
+}
+
+// ─── RENDER ────────────────────────────────────────────────
+function renderAll() {
+  renderStats();
+  renderLongTerms();
+  renderTasks(state.selectedDate);
+  renderCalendar();
+}
+
+function renderStats() {
+  // Calculate streak
+  const today = new Date();
+  let streak = 0;
+  let checkDate = new Date(today);
+
+  while (true) {
+    const y = checkDate.getFullYear();
+    const m = String(checkDate.getMonth()+1).padStart(2,'0');
+    const d = String(checkDate.getDate()).padStart(2,'0');
+    const iso = `${y}-${m}-${d}`;
+
+    const tasks = state.data.tasks[iso] || [];
+    const goals = state.data.longTerms.filter(g => iso >= g.start && iso <= g.end);
+    const hasCompletedTask = tasks.some(t => t.completed);
+    const hasCompletedGoal = goals.some(g => state.data.goalProgress[g.id]?.[iso]);
+
+    if (hasCompletedTask || hasCompletedGoal) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  state.data.streak = streak;
+  $('points').textContent = state.data.points;
+  $('streak').textContent = streak;
+  $('level').textContent = Math.floor(state.data.points / 100) + 1;
+}
+
+function getDatesInRange(start, end) {
+  const dates = [];
+  const current = new Date(start + 'T00:00:00');
+  const endDate = new Date(end + 'T00:00:00');
+  while (current <= endDate) {
+    const y = current.getFullYear();
+    const m = String(current.getMonth()+1).padStart(2,'0');
+    const d = String(current.getDate()).padStart(2,'0');
+    dates.push(`${y}-${m}-${d}`);
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+function calculateGoalProgress(goal) {
+  const dates = getDatesInRange(goal.start, goal.end);
+  const completed = dates.filter(date => state.data.goalProgress[goal.id]?.[date]).length;
+  return {
+    completed,
+    total: dates.length,
+    percentage: dates.length > 0 ? Math.round((completed / dates.length) * 100) : 0
+  };
+}
+
+function renderLongTerms() {
+  const container = $('longTermList');
+  container.innerHTML = '';
+  $('goalCount').textContent = state.data.longTerms.length;
+
+  if (state.data.longTerms.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🎯</div>No goals yet. Set one above!</div>';
+    return;
+  }
+
+  state.data.longTerms.forEach((goal, index) => {
+    const progress = calculateGoalProgress(goal);
+    const div = document.createElement('div');
+    div.className = 'goal-card';
+
+    div.innerHTML = `
+      <div class="goal-card-header">
+        <div class="goal-card-name">${escapeHtml(goal.name)}</div>
+        <button class="btn btn-danger btn-sm" onclick="deleteGoal(${index})">🗑️</button>
+      </div>
+      <div class="goal-card-dates">📅 ${goal.start} → ${goal.end}</div>
+      <div class="goal-progress-container">
+        <div class="goal-progress-bar">
+          <div class="goal-progress-fill" style="width:${progress.percentage}%"></div>
+        </div>
+        <div class="goal-progress-text">${progress.completed}/${progress.total} (${progress.percentage}%)</div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function renderTasks(date) {
+  const list = $('taskList');
+  list.innerHTML = '';
+
+  const activeGoals = state.data.longTerms.filter(g => date >= g.start && date <= g.end);
+  const daily = state.data.tasks[date] || [];
+
+  $('taskCount').textContent = activeGoals.length + daily.length;
+
+  if (activeGoals.length === 0 && daily.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>No tasks for this day</div>';
+    return;
+  }
+
+  // Render goal tasks
+  activeGoals.forEach(goal => {
+    const isChecked = state.data.goalProgress[goal.id]?.[date] || false;
+    const card = document.createElement('div');
+    card.className = 'task-card';
+
+    card.innerHTML = `
+      <div class="custom-checkbox ${isChecked ? 'checked' : ''}" data-goal-id="${goal.id}" data-date="${date}">
+        ${isChecked ? '✓' : ''}
+      </div>
+      <div class="task-content">
+        <span class="task-name ${isChecked ? 'completed' : ''}">${escapeHtml(goal.name)}<span class="task-badge">Goal</span></span>
+      </div>
+    `;
+
+    const checkbox = card.querySelector('.custom-checkbox');
+    checkbox.addEventListener('click', () => toggleGoalTask(goal.id, date));
+
+    list.appendChild(card);
+  });
+
+  // Render daily tasks
+  daily.forEach((task, i) => {
+    const card = document.createElement('div');
+    card.className = 'task-card';
+    const isChecked = task.completed || false;
+
+    card.innerHTML = `
+      <div class="custom-checkbox ${isChecked ? 'checked' : ''}" data-task-index="${i}" data-date="${date}">
+        ${isChecked ? '✓' : ''}
+      </div>
+      <div class="task-content">
+        <span class="task-name ${isChecked ? 'completed' : ''}">${escapeHtml(task.name)}</span>
+      </div>
+      <div class="task-actions">
+        <button class="btn btn-outline btn-icon btn-sm" onclick="editTask('${date}', ${i})">✏️</button>
+        <button class="btn btn-outline btn-icon btn-sm" onclick="deleteTask('${date}', ${i})">🗑️</button>
+      </div>
+    `;
+
+    const checkbox = card.querySelector('.custom-checkbox');
+    checkbox.addEventListener('click', () => toggleDailyTask(date, i));
+
+    list.appendChild(card);
+  });
+}
+
+function renderCalendar() {
+  const cal = $('calendar');
+  cal.innerHTML = '';
+
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  $('calMonthLabel').textContent = `${monthNames[state.calendarMonth]} ${state.calendarYear}`;
+
+  const todayISO = getTodayISO();
+
+  ['S','M','T','W','T','F','S'].forEach(d => {
+    const h = document.createElement('div');
+    h.textContent = d;
+    h.className = 'cal-header';
+    cal.appendChild(h);
+  });
+
+  const firstDay = new Date(state.calendarYear, state.calendarMonth, 1);
+  const startDay = firstDay.getDay();
+  const daysInMonth = new Date(state.calendarYear, state.calendarMonth + 1, 0).getDate();
+
+  for (let i = 0; i < startDay; i++) {
+    cal.appendChild(document.createElement('div'));
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const month = String(state.calendarMonth + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const iso = `${state.calendarYear}-${month}-${dayStr}`;
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-day';
+
+    if (iso === todayISO) cell.classList.add('today');
+    if (iso === state.selectedDate) cell.classList.add('selected');
+
+    const num = document.createElement('span');
+    num.textContent = day;
+    cell.appendChild(num);
+
+    // Dots
+    const dailyTasks = state.data.tasks[iso] || [];
+    const goalsForDay = state.data.longTerms.filter(g => iso >= g.start && iso <= g.end);
+
+    const dots = document.createElement('div');
+    dots.className = 'day-dots';
+
+    if (dailyTasks.length > 0) {
+      const dot = document.createElement('div');
+      dot.className = 'dot task-dot';
+      dots.appendChild(dot);
+    }
+    if (goalsForDay.length > 0) {
+      const dot = document.createElement('div');
+      dot.className = 'dot goal-dot';
+      dots.appendChild(dot);
+    }
+
+    const allDailyDone = dailyTasks.length > 0 && dailyTasks.every(t => t.completed);
+    const allGoalsDone = goalsForDay.length > 0 && goalsForDay.every(g => state.data.goalProgress[g.id]?.[iso]);
+
+    if ((allDailyDone && dailyTasks.length > 0) || (allGoalsDone && goalsForDay.length > 0)) {
+      const dot = document.createElement('div');
+      dot.className = 'dot done-dot';
+      dots.appendChild(dot);
+    }
+
+    cell.appendChild(dots);
+
+    cell.addEventListener('click', () => {
+      state.selectedDate = iso;
+      $('currentDate').value = iso;
+      renderTasks(iso);
+      renderCalendar();
+    });
+
+    cal.appendChild(cell);
+  }
+}
+
+// ─── ACTIONS ───────────────────────────────────────────────
+function toggleGoalTask(goalId, date) {
+  if (!state.data.goalProgress[goalId]) state.data.goalProgress[goalId] = {};
+
+  if (state.data.goalProgress[goalId][date]) {
+    delete state.data.goalProgress[goalId][date];
+    state.data.points = Math.max(0, state.data.points - 15);
+  } else {
+    state.data.goalProgress[goalId][date] = true;
+    state.data.points += 15;
+    showToast('+15 points! 🎯', 'success');
+  }
+
+  saveData();
+  renderAll();
+}
+
+function toggleDailyTask(date, index) {
+  const task = state.data.tasks[date][index];
+  if (task.completed) {
+    task.completed = false;
+    state.data.points = Math.max(0, state.data.points - 10);
+  } else {
+    task.completed = true;
+    state.data.points += 10;
+    showToast('+10 points! ⭐', 'success');
+  }
+
+  saveData();
+  renderAll();
+}
+
+function editTask(date, index) {
+  const task = state.data.tasks[date][index];
+  const newName = prompt('Edit task', task.name);
+  if (newName === null || newName.trim() === '') return;
+  state.data.tasks[date][index].name = newName.trim();
+  saveData();
+  renderTasks(date);
+}
+
+function deleteTask(date, index) {
+  if (state.data.tasks[date][index].completed) {
+    state.data.points = Math.max(0, state.data.points - 10);
+  }
+  state.data.tasks[date].splice(index, 1);
+  if (state.data.tasks[date].length === 0) delete state.data.tasks[date];
+  saveData();
+  renderAll();
+}
+
+function deleteGoal(index) {
+  const goal = state.data.longTerms[index];
+  if (!confirm(`Delete goal "${goal.name}"?`)) return;
+  delete state.data.goalProgress[goal.id];
+  state.data.longTerms.splice(index, 1);
+  saveData();
+  renderAll();
+  showToast('Goal deleted', 'info');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function updateThemeButton() {
+  $('themeToggle').textContent = state.data.theme === 'dark' ? '☀️' : '🌙';
+}
+
+// ─── EVENT LISTENERS ───────────────────────────────────────
+$('addTask').addEventListener('click', () => {
+  const date = state.selectedDate;
+  const name = $('taskInput').value.trim();
+  if (!name) return;
+  if (!state.data.tasks[date]) state.data.tasks[date] = [];
+  state.data.tasks[date].push({ name, completed: false });
+  $('taskInput').value = '';
+  saveData();
+  renderAll();
+  showToast('Task added! 📋', 'success');
+});
+
+$('taskInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') $('addTask').click();
+});
+
+$('addLongTerm').addEventListener('click', () => {
+  const name = $('ltName').value.trim();
+  const start = $('ltStart').value;
+  const end = $('ltEnd').value;
+
+  if (!name || !start || !end) {
+    showToast('Please fill all goal fields', 'error');
+    return;
+  }
+  if (start > end) {
+    showToast('Start date must be before end date', 'error');
+    return;
+  }
+
+  state.data.longTerms.push({ id: generateId(), name, start, end });
+  $('ltName').value = '';
+  $('ltStart').value = '';
+  $('ltEnd').value = '';
+  saveData();
+  renderAll();
+  showToast('Goal added! 🎯', 'success');
+});
+
+$('currentDate').addEventListener('change', () => {
+  state.selectedDate = $('currentDate').value;
+  const [y, m] = state.selectedDate.split('-').map(Number);
+  state.calendarMonth = m - 1;
+  state.calendarYear = y;
+  renderTasks(state.selectedDate);
+  renderCalendar();
+});
+
+$('todayBtn').addEventListener('click', () => {
+  const today = getTodayISO();
+  state.selectedDate = today;
+  $('currentDate').value = today;
+  const t = new Date();
+  state.calendarMonth = t.getMonth();
+  state.calendarYear = t.getFullYear();
+  renderTasks(today);
+  renderCalendar();
+});
+
+$('calPrev').addEventListener('click', () => {
+  state.calendarMonth--;
+  if (state.calendarMonth < 0) {
+    state.calendarMonth = 11;
+    state.calendarYear--;
+  }
+  renderCalendar();
+});
+
+$('calNext').addEventListener('click', () => {
+  state.calendarMonth++;
+  if (state.calendarMonth > 11) {
+    state.calendarMonth = 0;
+    state.calendarYear++;
+  }
+  renderCalendar();
+});
+
+$('themeToggle').addEventListener('click', () => {
+  state.data.theme = state.data.theme === 'dark' ? 'light' : 'dark';
+  document.body.className = state.data.theme;
+  updateThemeButton();
+  saveData();
+});
+
+$('logoutBtn').addEventListener('click', handleLogout);
+
+$('resetToday').addEventListener('click', () => {
+  const date = state.selectedDate;
+  if (!confirm('Reset all tasks for this day?')) return;
+  delete state.data.tasks[date];
+  state.data.longTerms.forEach(goal => {
+    if (state.data.goalProgress[goal.id]) {
+      delete state.data.goalProgress[goal.id][date];
+    }
+  });
+  saveData();
+  renderAll();
+  showToast('Day reset', 'info');
+});
+
+$('resetStats').addEventListener('click', () => {
+  if (!confirm('Reset points and streak?')) return;
+  state.data.points = 0;
+  state.data.streak = 0;
+  saveData();
+  renderStats();
+  showToast('Stats reset', 'info');
+});
+
+$('resetAll').addEventListener('click', async () => {
+  if (!confirm('Delete EVERYTHING? This cannot be undone!')) return;
+  showLoading();
+  try {
+    await api('/api/planner', 'DELETE');
+    state.data = {
+      tasks: {},
+      longTerms: [],
+      goalProgress: {},
+      points: 0,
+      streak: 0,
+      theme: state.data.theme
+    };
+    renderAll();
+    showToast('All data deleted', 'info');
+  } catch (err) {
+    showToast('Failed to reset', 'error');
+  } finally {
+    hideLoading();
+  }
+});
+
+// Enter key on auth forms
+$('loginPassword').addEventListener('keypress', e => { if (e.key === 'Enter') handleLogin(); });
+$('regPassword').addEventListener('keypress', e => { if (e.key === 'Enter') handleRegister(); });
+
+// ─── INIT ──────────────────────────────────────────────────
+async function init() {
+  if (state.token && state.user) {
+    showLoading();
+    try {
+      // Verify token is still valid
+      await api('/api/auth/me');
+      await loadData();
+      showApp();
+    } catch (err) {
+      // Token expired or invalid
+      localStorage.removeItem('planner_token');
+      localStorage.removeItem('planner_user');
+      state.token = null;
+      state.user = null;
+      $('authScreen').classList.remove('hidden');
+    } finally {
+      hideLoading();
+    }
+  } else {
+    $('authScreen').classList.remove('hidden');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
