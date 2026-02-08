@@ -279,7 +279,7 @@
     }
 
     /* ═══════════ INPUTS ═══════════ */
-    .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .input-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; }
     .modern-input {
       flex: 1; min-width: 0; padding: 14px 18px; border-radius: var(--radius-md);
       border: 2px solid transparent; font-size: 14px; outline: none;
@@ -289,6 +289,59 @@
     body.light .modern-input { background: var(--card-light); color: var(--text-light); border-color: var(--border-light); }
     .modern-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
     .modern-input::placeholder { opacity: 0.35; }
+
+    /* ═══════════ DATE ROW WITH LABELS ═══════════ */
+    .date-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .date-label-text {
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+      padding: 0 4px;
+    }
+    body.dark .date-label-text { color: var(--text-muted-dark); }
+    body.light .date-label-text { color: var(--text-muted-light); }
+
+    .date-arrow {
+      font-size: 18px;
+      font-weight: 700;
+      flex-shrink: 0;
+      padding: 0 4px;
+    }
+    body.dark .date-arrow { color: var(--accent-light); }
+    body.light .date-arrow { color: var(--accent); }
+
+    .date-input-wrapper {
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .date-input-wrapper .modern-input {
+      width: 100%;
+    }
+
+    @media (max-width: 400px) {
+      .date-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .date-row .date-label-text {
+        display: block;
+        margin-bottom: -6px;
+      }
+      .date-arrow {
+        display: none;
+      }
+      .date-input-wrapper {
+        width: 100%;
+      }
+    }
 
     /* ═══════════ BUTTONS ═══════════ */
     .btn {
@@ -606,11 +659,18 @@
       <span class="badge" id="goalCount">0</span>
     </div>
     <div class="input-row">
-      <input class="modern-input" id="ltName" placeholder="Goal name..." style="flex:2" />
+      <input class="modern-input" id="ltName" placeholder="Goal name..." />
     </div>
-    <div class="input-row">
-      <input type="date" class="modern-input" id="ltStart" placeholder="Start date"/>
-      <input type="date" class="modern-input" id="ltEnd" placeholder="End date"/>
+    <div class="input-row date-row">
+      <span class="date-label-text">From</span>
+      <div class="date-input-wrapper">
+        <input type="date" class="modern-input" id="ltStart" />
+      </div>
+      <span class="date-arrow">→</span>
+      <span class="date-label-text">To</span>
+      <div class="date-input-wrapper">
+        <input type="date" class="modern-input" id="ltEnd" />
+      </div>
     </div>
     <div class="input-row">
       <button class="btn btn-primary btn-full" id="addLongTerm">➕ Add Goal</button>
